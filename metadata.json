@@ -1,0 +1,6 @@
+{
+  "name": "Denmin British Montessori Academy",
+  "description": "Official website and management portal for Denmin British Montessori Academy in Benin City, Nigeria. Featuring British-Montessori standards, online CBT exams, student result portal, and school admin system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

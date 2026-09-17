@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "school_info": {
+      "title": "School Info",
+      "description": "General metadata for Denmin British Montessori Academy",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "motto": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "principalName": { "type": "string" },
+        "principalWelcomeMessage": { "type": "string" }
+      },
+      "required": ["name", "motto"]
+    },
+    "students": {
+      "title": "Student",
+      "description": "Registered students directory",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "admissionNo": { "type": "string" },
+        "className": { "type": "string" },
+        "gender": { "type": "string" },
+        "dob": { "type": "string" },
+        "parentName": { "type": "string" },
+        "parentPhone": { "type": "string" },
+        "parentEmail": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["fullName", "admissionNo", "className"]
+    },
+    "teachers": {
+      "title": "Teacher",
+      "description": "Teaching staff directory",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string" },
+        "assignedClass": { "type": "string" },
+        "qualification": { "type": "string" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["fullName", "email", "assignedClass"]
+    },
+    "result_slips": {
+      "title": "Result Slip",
+      "description": "Student academic report card",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "admissionNo": { "type": "string" },
+        "className": { "type": "string" },
+        "academicSession": { "type": "string" },
+        "term": { "type": "string" },
+        "subjects": { "type": "array" },
+        "totalObtained": { "type": "number" },
+        "totalPossible": { "type": "number" },
+        "average": { "type": "number" },
+        "positionInClass": { "type": "number" },
+        "totalStudentsInClass": { "type": "number" },
+        "attendancePresent": { "type": "number" },
+        "attendanceTotal": { "type": "number" },
+        "classTeacherRemark": { "type": "string" },
+        "principalRemark": { "type": "string" },
+        "isPublished": { "type": "boolean" }
+      },
+      "required": ["studentName", "admissionNo", "className", "term"]
+    },
+    "cbt_exams": {
+      "title": "CBT Exam",
+      "description": "Online computer-based test examinations",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "className": { "type": "string" },
+        "subject": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "passingScorePercent": { "type": "number" },
+        "shuffleQuestions": { "type": "boolean" },
+        "preventTabSwitch": { "type": "boolean" },
+        "isPublished": { "type": "boolean" },
+        "instructions": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "questions": { "type": "array" }
+      },
+      "required": ["title", "className", "subject", "questions"]
+    },
+    "cbt_attempts": {
+      "title": "CBT Attempt",
+      "description": "Submitted student exam attempts and scores",
+      "type": "object",
+      "properties": {
+        "examId": { "type": "string" },
+        "examTitle": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "admissionNo": { "type": "string" },
+        "score": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "percentage": { "type": "number" },
+        "passed": { "type": "boolean" },
+        "tabSwitchCount": { "type": "number" },
+        "dateTaken": { "type": "string" }
+      },
+      "required": ["examTitle", "studentName", "admissionNo", "score"]
+    },
+    "fee_payments": {
+      "title": "Fee Payment",
+      "description": "School fee payment records and receipts",
+      "type": "object",
+      "properties": {
+        "receiptNo": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "admissionNo": { "type": "string" },
+        "className": { "type": "string" },
+        "term": { "type": "string" },
+        "session": { "type": "string" },
+        "amountPaid": { "type": "number" },
+        "totalFee": { "type": "number" },
+        "balance": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentDate": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["receiptNo", "studentName", "amountPaid"]
+    },
+    "news_articles": {
+      "title": "News Article",
+      "description": "School news and announcements",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "author": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["title", "summary"]
+    }
+  }
+}
