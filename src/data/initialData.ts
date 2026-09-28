@@ -24,7 +24,7 @@ export const initialSchoolInfo: SchoolInfo = {
   phone: "+234 803 456 7890",
   email: "info@denminacademy.edu.ng",
   whatsapp: "+234 803 456 7890",
-  logoUrl: "",
+  logoUrl: "/icon-192.png",
   principalName: "Dr. Denyinye Minna Hitler",
   principalTitle: "Proprietor & Executive Chairman (B.Sc, M.Sc, FCIA)",
   principalPhotoUrl: "/src/assets/images/proprietor_photo_1789616090083.jpg",

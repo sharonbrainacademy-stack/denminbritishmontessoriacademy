@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, WifiOff, X } from 'lucide-react';
+import { Download, WifiOff, X, GraduationCap } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -59,40 +59,50 @@ export const PWAStatus: React.FC = () => {
     <>
       {/* Offline Alert Indicator */}
       {!isOnline && (
-        <div className="bg-[#4a1478] text-white px-4 py-2 text-sm font-medium flex items-center justify-between shadow-md fixed bottom-4 left-4 right-4 md:right-auto md:max-w-md z-50 rounded-xl border border-purple-400/30">
-          <div className="flex items-center gap-2">
-            <WifiOff className="w-4 h-4 text-amber-300 animate-pulse" />
-            <span>You are offline. Showing cached Light Up resources.</span>
+        <div className="bg-[#0B3D27] text-white px-4 py-2.5 text-xs font-semibold flex items-center justify-between shadow-xl fixed bottom-4 left-4 right-4 md:right-auto md:max-w-md z-50 rounded-2xl border-2 border-[#D4AF37]">
+          <div className="flex items-center gap-2.5">
+            <WifiOff className="w-4 h-4 text-[#D4AF37] animate-pulse shrink-0" />
+            <span>You are offline. Showing cached Denmin British Montessori resources.</span>
           </div>
         </div>
       )}
 
       {/* In-App Install Prompt Banner */}
       {!isInstalled && deferredPrompt && !dismissBanner && (
-        <div className="fixed bottom-4 right-4 z-50 bg-[#4a1478] text-white p-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-purple-300/30 max-w-sm transition-all duration-300">
-          <img
-            src="/icon-192.png"
-            alt="Light Up Icon"
-            className="w-10 h-10 rounded-xl shadow-inner border border-white/20"
-          />
+        <div className="fixed bottom-4 right-4 z-50 bg-[#0B3D27] text-white p-4 rounded-3xl shadow-2xl flex items-center gap-3.5 border-2 border-[#D4AF37] max-w-sm transition-all duration-300">
+          <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center p-1.5 border border-[#D4AF37] shadow-inner shrink-0 overflow-hidden">
+            <img
+              src="/icon-192.png"
+              alt="Denmin British Icon"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                // Fallback to graduation cap icon if image not available
+                (e.currentTarget as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
           <div className="flex-1 text-left">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-purple-200">Install App</h4>
-            <p className="text-xs text-white/90">Install Light Up Prayer House for quick offline access.</p>
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4AF37]">Install PWA</h4>
+              <span className="text-[9px] bg-emerald-900 px-1.5 py-0.5 rounded text-emerald-200">Offline App</span>
+            </div>
+            <p className="text-xs font-bold text-white mt-0.5">Denmin British Montessori</p>
+            <p className="text-[11px] text-emerald-100/90 leading-tight">Install app for instant offline access to CBT exams, results, and attendance.</p>
           </div>
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleInstallClick}
-              className="bg-amber-400 hover:bg-amber-300 text-[#4a1478] px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow"
+              className="bg-[#D4AF37] hover:bg-amber-400 text-[#0B3D27] px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1 shadow-md shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
-              Install
+              <span>Install</span>
             </button>
             <button
               onClick={() => setDismissBanner(true)}
-              className="text-white/70 hover:text-white p-1 rounded-md"
+              className="text-white/60 hover:text-white p-1 rounded-md"
               aria-label="Dismiss"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
-// Service Worker for Light Up Prayer House
-const CACHE_NAME = 'lightup-cache-v1';
+// Service Worker for Denmin British Montessori Academy
+const CACHE_NAME = 'denmin-british-cache-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static assets');
+      console.log('[Service Worker] Caching static assets for Denmin British');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );

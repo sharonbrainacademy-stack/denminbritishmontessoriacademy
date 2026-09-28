@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "Light Up Prayer House",
-  "short_name": "LightUp",
+  "name": "Denmin British Montessori Academy",
+  "short_name": "Denmin British",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4a1478",
-  "description": "Light Up Prayer House - Fellowship, prayers, and online community.",
+  "theme_color": "#0B3D27",
+  "description": "Official portal for Denmin British Montessori Academy - Montessori learning, offline CBT exams, attendance register, and student result slips.",
   "icons": [
     {
       "src": "/icon-192.png",

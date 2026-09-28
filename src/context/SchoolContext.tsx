@@ -214,6 +214,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           cleanedInfo.principalTitle = cleanedInfo.principalTitle.replace(/proprietress/gi, 'Proprietor');
           needsUpdate = true;
         }
+        if (!cleanedInfo.logoUrl) {
+          cleanedInfo.logoUrl = '/icon-192.png';
+          needsUpdate = true;
+        }
 
         if (needsUpdate) {
           setDoc(doc(db, 'school_info', 'main'), cleanedInfo, { merge: true }).catch(console.error);
