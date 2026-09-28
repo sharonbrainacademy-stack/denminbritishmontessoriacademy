@@ -25,7 +25,7 @@ interface CBTExamRunnerProps {
 }
 
 export const CBTExamRunner: React.FC<CBTExamRunnerProps> = ({ exam, student, onClose }) => {
-  const { recordCBTAttempt } = useSchool();
+  const { recordCBTAttempt, isOffline } = useSchool();
 
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -187,6 +187,13 @@ export const CBTExamRunner: React.FC<CBTExamRunnerProps> = ({ exam, student, onC
             Student: <strong>{student.fullName}</strong> ({student.admissionNo}) — Pass Mark: {exam.passingScorePercent}%
           </p>
 
+          <div className="pt-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950/90 text-[#D4AF37] border border-[#D4AF37]/40 shadow-sm">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Score securely stored offline on this device & queued for cloud sync</span>
+            </span>
+          </div>
+
           {completedAttempt.tabSwitchCount > 0 && (
             <div className="mt-2 text-[11px] bg-red-900/80 text-red-200 p-2 rounded-lg inline-block border border-red-500">
               ⚠️ Anti-cheat tab switch flags recorded: {completedAttempt.tabSwitchCount} times.
@@ -281,7 +288,14 @@ export const CBTExamRunner: React.FC<CBTExamRunnerProps> = ({ exam, student, onC
       {/* Top Status Bar */}
       <div className="bg-[#0B3D27] text-white p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-[#D4AF37]/40">
         <div>
-          <h3 className="font-serif font-bold text-base text-[#F9F6EF]">{exam.title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-serif font-bold text-base text-[#F9F6EF]">{exam.title}</h3>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              isOffline ? 'bg-amber-400 text-amber-950 border-amber-300' : 'bg-emerald-800 text-[#D4AF37] border-[#D4AF37]/40'
+            }`}>
+              {isOffline ? 'OFFLINE CBT MODE' : 'ONLINE SYNC ACTIVE'}
+            </span>
+          </div>
           <p className="text-xs text-emerald-200">
             Student: <strong>{student.fullName}</strong> ({student.admissionNo}) — {student.className}
           </p>

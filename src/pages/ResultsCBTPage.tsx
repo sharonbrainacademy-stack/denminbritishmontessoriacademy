@@ -14,6 +14,7 @@ import {
   Sparkles,
   BarChart3,
   Calendar,
+  ShieldCheck,
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { CBTExamRunner } from '../components/cbt/CBTExamRunner';
@@ -129,12 +130,16 @@ export const ResultsCBTPage: React.FC = () => {
     className: verifiedCBTStudent.className,
     gender: 'Male',
     dateOfBirth: '2015-01-01',
+    parentName: 'Guardian',
+    parentPhone: '08000000000',
+    parentEmail: 'parent@denminacademy.edu.ng',
+    enrollmentYear: '2024',
     guardianName: 'Guardian',
     guardianPhone: '08000000000',
-    address: 'Minna, Niger State',
+    address: 'Benin City, Edo State',
     passportPhotoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=300',
     academicSession: '2024/2025',
-    status: 'active'
+    status: 'Active'
   } as Student : null);
 
   if (activeExamToRun && studentToRun) {
@@ -429,8 +434,8 @@ export const ResultsCBTPage: React.FC = () => {
           ) : (
             <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 max-w-md mx-auto space-y-2">
               <User className="w-8 h-8 mx-auto text-slate-400" />
-              <p className="text-xs font-bold">No student record matched admission number "{admissionNoInput}".</p>
-              <p className="text-[11px]">Please check the admission number or click one of the quick demo buttons above.</p>
+              <p className="text-xs font-bold">No student record selected or found in {selectedClassFilter}.</p>
+              <p className="text-[11px]">Please select an admitted student from the drop-down list above.</p>
             </div>
           )}
         </div>

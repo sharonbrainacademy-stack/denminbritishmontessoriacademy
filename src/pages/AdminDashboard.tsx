@@ -26,6 +26,10 @@ import {
   RefreshCw,
   Zap,
   Image as ImageIcon,
+  UserCheck,
+  Clock,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useSchool } from '../context/SchoolContext';
@@ -51,6 +55,9 @@ export const AdminDashboard: React.FC = () => {
     saveCBTExam,
     deleteCBTExam,
     cbtAttempts,
+    studentAttendance,
+    staffAttendance,
+    isOffline,
     feeStructures,
     updateFeeStructure,
     feePayments,
@@ -104,7 +111,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const [activeSubTab, setActiveSubTab] = useState<
-    'overview' | 'students' | 'staff' | 'results' | 'cbt' | 'fees' | 'cms' | 'users' | 'reports' | 'guide'
+    'overview' | 'students' | 'staff' | 'attendance' | 'results' | 'cbt' | 'fees' | 'cms' | 'users' | 'reports' | 'guide'
   >('overview');
 
   // Student Form Modal State
@@ -122,6 +129,10 @@ export const AdminDashboard: React.FC = () => {
     status: 'Active' as const,
     enrollmentYear: '2024',
   });
+
+  // Admin Attendance Sub-Tab State
+  const [adminAttendanceDate, setAdminAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [adminAttendanceClassFilter, setAdminAttendanceClassFilter] = useState('Primary 5');
 
   // Teacher Form Modal State
   const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
@@ -354,13 +365,14 @@ export const AdminDashboard: React.FC = () => {
           { id: 'overview', label: '1. Overview', icon: BarChart3 },
           { id: 'students', label: '2. Students', icon: GraduationCap },
           { id: 'staff', label: '3. Staff', icon: Users },
-          { id: 'results', label: '4. Results Entry', icon: FileText },
-          { id: 'cbt', label: '5. CBT Exams', icon: BookOpen },
-          { id: 'fees', label: '6. Fees & Receipts', icon: CreditCard },
-          { id: 'cms', label: '7. Website CMS', icon: Globe },
-          { id: 'users', label: '8. User Accounts', icon: ShieldCheck },
-          { id: 'reports', label: '9. Reports', icon: Download },
-          { id: 'guide', label: '10. Deployment Guide', icon: HelpCircle },
+          { id: 'attendance', label: '4. Attendance', icon: UserCheck },
+          { id: 'results', label: '5. Results Entry', icon: FileText },
+          { id: 'cbt', label: '6. CBT Exams', icon: BookOpen },
+          { id: 'fees', label: '7. Fees & Receipts', icon: CreditCard },
+          { id: 'cms', label: '8. Website CMS', icon: Globe },
+          { id: 'users', label: '9. User Accounts', icon: ShieldCheck },
+          { id: 'reports', label: '10. Reports', icon: Download },
+          { id: 'guide', label: '11. Deployment Guide', icon: HelpCircle },
         ].map(tab => {
           const IconComp = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -624,7 +636,161 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* SUB-TAB 4: RESULTS MANAGEMENT */}
+      {/* SUB-TAB: ATTENDANCE MANAGEMENT (PUPILS & STAFF) */}
+      {activeSubTab === 'attendance' && (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-serif font-bold text-lg text-[#0B3D27]">School-Wide Attendance Register</h3>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isOffline ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                }`}>
+                  {isOffline ? 'OFFLINE ACTIVE' : 'CLOUD SYNCED'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">Monitor pupil daily attendance and staff clock-in registers across all class levels (Saved safely offline)</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Filter Date</label>
+                <input
+                  type="date"
+                  value={adminAttendanceDate}
+                  onChange={e => setAdminAttendanceDate(e.target.value)}
+                  className="p-2 border border-slate-300 rounded-xl text-xs font-bold text-[#0B3D27] bg-slate-50"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Filter Class</label>
+                <select
+                  value={adminAttendanceClassFilter}
+                  onChange={e => setAdminAttendanceClassFilter(e.target.value)}
+                  className="p-2 border border-slate-300 rounded-xl text-xs font-bold text-[#0B3D27] bg-slate-50"
+                >
+                  <option value="All">All Classes</option>
+                  {['Pre-Nursery', 'Nursery 1', 'Nursery 2', 'Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6'].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Metrics */}
+          {(() => {
+            const dateFilteredStudents = studentAttendance.filter(
+              r => r.date === adminAttendanceDate && (adminAttendanceClassFilter === 'All' || r.className === adminAttendanceClassFilter)
+            );
+            const present = dateFilteredStudents.filter(r => r.status === 'present').length;
+            const absent = dateFilteredStudents.filter(r => r.status === 'absent').length;
+            const late = dateFilteredStudents.filter(r => r.status === 'late').length;
+            const staffForDay = staffAttendance.filter(s => s.date === adminAttendanceDate);
+
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+                  <span className="text-xs font-bold text-emerald-800">Pupils Present</span>
+                  <p className="text-2xl font-bold font-serif text-emerald-950 mt-1">{present}</p>
+                  <p className="text-[10px] text-emerald-700">Marked for {adminAttendanceDate}</p>
+                </div>
+                <div className="p-4 bg-red-50 rounded-2xl border border-red-200">
+                  <span className="text-xs font-bold text-red-800">Pupils Absent</span>
+                  <p className="text-2xl font-bold font-serif text-red-950 mt-1">{absent}</p>
+                  <p className="text-[10px] text-red-700">Unexcused or notified</p>
+                </div>
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200">
+                  <span className="text-xs font-bold text-amber-800">Pupils Late</span>
+                  <p className="text-2xl font-bold font-serif text-amber-950 mt-1">{late}</p>
+                  <p className="text-[10px] text-amber-700">Arrived after assembly</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  <span className="text-xs font-bold text-[#0B3D27]">Staff Clock-Ins</span>
+                  <p className="text-2xl font-bold font-serif text-[#0B3D27] mt-1">{staffForDay.length} / {teachers.length}</p>
+                  <p className="text-[10px] text-slate-500">Educators on duty</p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Pupil Daily Attendance Logs */}
+          <div className="space-y-3">
+            <h4 className="font-serif font-bold text-sm text-[#0B3D27]">Pupil Classroom Attendance Logs ({adminAttendanceDate})</h4>
+            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#0B3D27] text-white">
+                  <tr>
+                    <th className="p-3">Pupil Name</th>
+                    <th className="p-3">Admission No</th>
+                    <th className="p-3">Class</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Marked By</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {studentAttendance
+                    .filter(r => r.date === adminAttendanceDate && (adminAttendanceClassFilter === 'All' || r.className === adminAttendanceClassFilter))
+                    .map(rec => (
+                      <tr key={rec.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-bold text-[#0B3D27]">{rec.studentName}</td>
+                        <td className="p-3 font-mono text-slate-600">{rec.admissionNo}</td>
+                        <td className="p-3 font-semibold">{rec.className}</td>
+                        <td className="p-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            rec.status === 'present' ? 'bg-emerald-100 text-emerald-800' : rec.status === 'absent' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {rec.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-slate-500">{rec.markedBy || 'Class Teacher'}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Staff Attendance Logs */}
+          <div className="space-y-3 pt-4 border-t border-slate-200">
+            <h4 className="font-serif font-bold text-sm text-[#0B3D27]">Academic Staff Daily Clock-In Register</h4>
+            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#0B3D27] text-white">
+                  <tr>
+                    <th className="p-3">Staff Name</th>
+                    <th className="p-3">Staff ID</th>
+                    <th className="p-3">Role</th>
+                    <th className="p-3">Time In</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {staffAttendance.map(stf => (
+                    <tr key={stf.id} className="hover:bg-slate-50">
+                      <td className="p-3 font-bold text-[#0B3D27]">{stf.staffName}</td>
+                      <td className="p-3 font-mono text-slate-600">{stf.staffId}</td>
+                      <td className="p-3 text-slate-600">{stf.role}</td>
+                      <td className="p-3 font-mono font-semibold">{stf.timeIn || '—'}</td>
+                      <td className="p-3">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          stf.status === 'present' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {stf.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-500">{stf.notes || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 5: RESULTS MANAGEMENT */}
       {activeSubTab === 'results' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 animate-fade-in">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -1141,7 +1307,15 @@ export const AdminDashboard: React.FC = () => {
       {showAddStudentModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4">
-            <h3 className="font-serif font-bold text-lg text-[#0B3D27]">Add New Student Record</h3>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 className="font-serif font-bold text-lg text-[#0B3D27]">Add New Student Record</h3>
+              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full">
+                ✓ Offline Ready
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Student details are saved immediately into local device storage and queued to synchronize automatically when online.
+            </p>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block font-bold mb-1">Full Name</label>

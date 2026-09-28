@@ -206,3 +206,46 @@ export interface SchoolInfo {
   yearsOfExcellence: number;
   passRatePercent: number;
 }
+
+export interface StudentAttendanceRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  className: string;
+  studentId: string;
+  studentName: string;
+  admissionNo: string;
+  status: 'present' | 'absent' | 'late';
+  markedBy?: string;
+  timestamp: string;
+}
+
+export interface StaffAttendanceRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  staffId: string;
+  staffName: string;
+  role: string;
+  status: 'present' | 'absent' | 'late' | 'on-leave';
+  timeIn?: string;
+  timeOut?: string;
+  notes?: string;
+  timestamp: string;
+}
+
+export interface TeachingMaterial {
+  id: string;
+  title: string;
+  subject: string;
+  className: string;
+  term: string;
+  week: string;
+  category: 'Scheme of Work' | 'Lesson Note' | 'Exercise Sheet' | 'Montessori Guide';
+  topic: string;
+  learningObjectives: string[];
+  materialsNeeded: string[];
+  keyConcepts: string;
+  presentationSteps: string[];
+  evaluationQuestions: string[];
+  authorStaffName?: string;
+  lastUpdated: string;
+}

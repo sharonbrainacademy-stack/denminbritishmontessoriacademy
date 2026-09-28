@@ -12,6 +12,7 @@ import {
   BookOpen,
   LogOut,
   Award,
+  KeyRound,
 } from 'lucide-react';
 import { useSchool } from '../../context/SchoolContext';
 

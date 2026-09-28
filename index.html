@@ -3,15 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Denmin British Montessori Academy | Benin City, Nigeria</title>
-    <meta name="description" content="Official website and management portal for Denmin British Montessori Academy in Benin City, Nigeria. Featuring British-Montessori standards, online CBT exams, student result portal, and school admin system." />
-    <meta property="og:title" content="Denmin British Montessori Academy | Benin City, Nigeria" />
-    <meta property="og:description" content="Excellence, Growth, and Warmth in British Montessori & Nigerian Education." />
+    <title>Light Up Prayer House</title>
+    <meta name="description" content="Official website and portal for Light Up Prayer House. Prayers, sermons, fellowships, and community." />
+    <meta name="theme-color" content="#4a1478" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LightUp" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta property="og:title" content="Light Up Prayer House" />
+    <meta property="og:description" content="Official website and portal for Light Up Prayer House." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('ServiceWorker registered successfully with scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('ServiceWorker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </head>
   <body class="bg-[#F9F6EF] text-slate-800 font-sans antialiased selection:bg-[#D4AF37] selection:text-[#0B3D27]">
     <div id="root"></div>

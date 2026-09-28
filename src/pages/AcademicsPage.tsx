@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BookOpen,
   Brain,
@@ -12,9 +12,22 @@ import {
   Calendar,
   Sparkles,
   Award,
+  FileText,
+  Download,
+  Printer,
+  ChevronRight,
+  CheckCircle2,
+  Layers,
+  Search,
 } from 'lucide-react';
+import { useSchool } from '../context/SchoolContext';
+import { TeachingMaterial } from '../types';
 
 export const AcademicsPage: React.FC = () => {
+  const { teachingMaterials, isOffline } = useSchool();
+  const [selectedSubject, setSelectedSubject] = useState<string>('All');
+  const [selectedMaterial, setSelectedMaterial] = useState<TeachingMaterial | null>(null);
+
   const montessoriPillars = [
     {
       title: '1. Practical Life Exercises',
@@ -52,6 +65,10 @@ export const AcademicsPage: React.FC = () => {
     { title: 'Diction, Drama & Debating', icon: Palette, desc: 'Elocution training, public speaking confidence, theatrical performance, and debates.' },
   ];
 
+  const filteredMaterials = teachingMaterials.filter(
+    m => selectedSubject === 'All' || m.subject === selectedSubject
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
       {/* Header Banner */}
@@ -63,7 +80,7 @@ export const AcademicsPage: React.FC = () => {
           Montessori Curriculum & Academics
         </h1>
         <p className="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto leading-relaxed">
-          Detailed breakdown of our learning areas, British primary subjects, co-curricular clubs, and academic term calendar.
+          Detailed breakdown of our learning areas, British primary subjects, co-curricular clubs, offline teaching materials, and academic term calendar.
         </p>
       </div>
 
@@ -131,6 +148,84 @@ export const AcademicsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Dedicated Section: OFFLINE TEACHING MATERIALS & SCHEMES OF WORK */}
+      <div className="bg-white rounded-3xl p-8 border-2 border-[#D4AF37] shadow-lg space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold bg-[#0B3D27] text-[#D4AF37] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Offline PWA Resource Library
+              </span>
+              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full">
+                ✓ 100% Works Without Internet
+              </span>
+            </div>
+            <h2 className="text-2xl font-bold font-serif text-[#0B3D27] mt-1">
+              Curriculum Schemes of Work & Teaching Materials
+            </h2>
+            <p className="text-xs text-slate-600">
+              Structured lesson notes, learning objectives, instructional presentation steps, and evaluation questions cached for immediate offline access.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <select
+              value={selectedSubject}
+              onChange={e => setSelectedSubject(e.target.value)}
+              className="text-xs p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold text-[#0B3D27]"
+            >
+              <option value="All">All Learning Areas</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="English Language">English Language</option>
+              <option value="Computer Studies">Computer Studies</option>
+              <option value="Montessori Curriculum">Montessori Curriculum</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredMaterials.map(mat => (
+            <div
+              key={mat.id}
+              className="p-5 rounded-2xl border border-slate-200 hover:border-[#D4AF37] transition-all bg-slate-50/50 space-y-3 flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full uppercase">
+                    {mat.category}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    {mat.week} • {mat.term}
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm font-serif text-[#0B3D27]">{mat.title}</h3>
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  <strong className="text-slate-800">Topic:</strong> {mat.topic}
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {mat.learningObjectives.slice(0, 2).map((obj, i) => (
+                    <span key={i} className="text-[10px] bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded-md truncate max-w-xs">
+                      • {obj}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-semibold">{mat.subject} ({mat.className})</span>
+                <button
+                  onClick={() => setSelectedMaterial(mat)}
+                  className="bg-[#0B3D27] hover:bg-emerald-950 text-[#D4AF37] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm transition-all"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Open Lesson Guide</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Co-Curricular Activities */}
       <div className="space-y-8">
         <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -193,6 +288,93 @@ export const AcademicsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Teaching Material Modal Viewer */}
+      {selectedMaterial && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border-2 border-[#D4AF37] max-h-[90vh] overflow-y-auto my-auto text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full uppercase">
+                  {selectedMaterial.category} • {selectedMaterial.week} ({selectedMaterial.term})
+                </span>
+                <h3 className="text-xl font-bold font-serif text-[#0B3D27] mt-1">
+                  {selectedMaterial.title}
+                </h3>
+                <p className="text-slate-500 font-semibold">{selectedMaterial.subject} — {selectedMaterial.className}</p>
+              </div>
+              <button
+                onClick={() => setSelectedMaterial(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-slate-700">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+                <span className="font-bold text-[#0B3D27]">Topic & Key Concept</span>
+                <p className="font-bold text-slate-900">{selectedMaterial.topic}</p>
+                <p className="text-slate-600 leading-relaxed">{selectedMaterial.keyConcepts}</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#0B3D27] mb-1.5">Learning Objectives</h4>
+                <ul className="list-disc list-inside space-y-1 text-slate-600">
+                  {selectedMaterial.learningObjectives.map((obj, i) => (
+                    <li key={i}>{obj}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#0B3D27] mb-1.5">Montessori Apparatus & Materials</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedMaterial.materialsNeeded.map((mat, i) => (
+                    <span key={i} className="bg-emerald-50 text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-200 font-medium">
+                      {mat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#0B3D27] mb-1.5">Classroom Presentation & Delivery Method</h4>
+                <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  {selectedMaterial.presentationSteps.map((step, i) => (
+                    <p key={i} className="text-slate-700 leading-relaxed">{step}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#0B3D27] mb-1.5">Independent Evaluation Questions</h4>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600">
+                  {selectedMaterial.evaluationQuestions.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <button
+                onClick={() => setSelectedMaterial(null)}
+                className="px-4 py-2 border rounded-xl font-bold"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-[#0B3D27] text-[#D4AF37] rounded-xl font-bold flex items-center gap-1.5 shadow"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Lesson Note</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

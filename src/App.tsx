@@ -12,6 +12,7 @@ import { NewsEventsPage } from './pages/NewsEventsPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { StaffPortalPage } from './pages/StaffPortalPage';
+import { PWAStatus } from './components/pwa/PWAStatus';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -84,6 +85,9 @@ export default function App() {
           onClose={() => setIsLoginModalOpen(false)}
           onLoginSuccess={handleLoginSuccess}
         />
+
+        {/* PWA Offline & Install Status */}
+        <PWAStatus />
       </div>
     </SchoolProvider>
   );
