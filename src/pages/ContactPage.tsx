@@ -52,7 +52,7 @@ export const ContactPage: React.FC = () => {
               Official Details
             </span>
             <h3 className="text-2xl font-bold font-serif text-[#F9F6EF] mt-1">
-              Denmin British Montessori Academy
+              Sharon Brain Academy
             </h3>
           </div>
 
@@ -63,7 +63,7 @@ export const ContactPage: React.FC = () => {
               </div>
               <div>
                 <strong className="block text-[#D4AF37] text-sm font-serif">Campus Address</strong>
-                <span>72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo, Benin City, Edo State, Nigeria.</span>
+                <span>No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.</span>
               </div>
             </li>
 
@@ -130,7 +130,7 @@ export const ContactPage: React.FC = () => {
               <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
               <h4 className="font-bold text-[#0B3D27] text-base">Message Sent Successfully!</h4>
               <p className="text-xs text-slate-600">
-                Thank you for contacting Denmin British Montessori Academy. We will be in touch shortly.
+                Thank you for contacting Sharon Brain Academy. We will be in touch shortly.
               </p>
               <button
                 onClick={() => setFormSent(false)}
@@ -228,13 +228,13 @@ export const ContactPage: React.FC = () => {
               Interactive Location Map — Benin City, Edo State
             </h3>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Opposite UNIBEN Main Gate</span>
+          <span className="text-xs text-slate-500 font-medium">Ugbowo, Benin City</span>
         </div>
 
         <div className="w-full h-80 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
           <iframe
-            title="Denmin British Montessori Academy Location Map"
-            src="https://maps.google.com/maps?q=Benin%20City%20UNIBEN%20Main%20Gate%20Ugbowo&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            title="Sharon Brain Academy Location Map"
+            src="https://maps.google.com/maps?q=Otakhiogbogie%20Street%20Ugbowo%20Benin%20City%20Edo%20State%20Nigeria&t=&z=15&ie=UTF8&iwloc=&output=embed"
             className="w-full h-full border-0"
             loading="lazy"
             allowFullScreen

@@ -9,6 +9,7 @@ import {
   Users,
   Building,
   CheckCircle,
+  Sparkles,
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 
@@ -46,7 +47,7 @@ export const AboutPage: React.FC = () => {
           Our Story, Vision & Philosophy
         </h1>
         <p className="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto leading-relaxed">
-          Established to bridge international British Montessori methodology with Nigerian moral and cultural values in Benin City.
+          Established to bridge international educational standards with Nigerian moral and cultural values in Benin City.
         </p>
       </div>
 
@@ -58,13 +59,13 @@ export const AboutPage: React.FC = () => {
             <span>Educational Philosophy</span>
           </div>
           <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#0B3D27]">
-            The Montessori Method Meets British Curriculum Standards
+            Academic Rigor Meets Character Development
           </h2>
           <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-            At Denmin British Montessori Academy, we adhere to Dr. Maria Montessori’s timeless insight: <i>"Education is a natural process carried out by the human individual, and is acquired not by listening to words, but by experiences upon the environment."</i>
+            At Sharon Brain Academy, we believe education is an empowering journey of intellectual discovery, moral fortitude, and self-actualization.
           </p>
           <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-            We combine this hands-on, self-correcting apparatus approach with the British National Curriculum and the Nigerian Ministry of Education guidelines. This ensures our pupils excel in international assessments, common entrance examinations, and real-world problem-solving.
+            We combine inquiry-based learning and modern educational technology with the Nigerian educational curriculum guidelines. This ensures our pupils excel in common entrance examinations, digital computer-based assessments, and future academic leadership.
           </p>
         </div>
 
@@ -72,7 +73,7 @@ export const AboutPage: React.FC = () => {
           <div className="rounded-2xl overflow-hidden border-4 border-[#D4AF37] shadow-xl">
             <img
               src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800"
-              alt="Montessori Learning Environment"
+              alt="Learning Environment"
               className="w-full h-80 object-cover"
             />
           </div>
@@ -91,7 +92,7 @@ export const AboutPage: React.FC = () => {
           </div>
           <h3 className="text-xl font-bold font-serif text-[#0B3D27]">Our Mission Statement</h3>
           <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-            To provide a stimulating, child-centered educational environment where pupils develop independent thinking, academic competence, moral integrity, and lifelong passion for discovery using British Montessori standards.
+            {schoolInfo.mission || "To provide a stimulating, student-centered learning environment where every learner develops intellectual agility, sound moral character, creative problem-solving skills, and a lifelong passion for excellence."}
           </p>
         </div>
 
@@ -101,7 +102,7 @@ export const AboutPage: React.FC = () => {
           </div>
           <h3 className="text-xl font-bold font-serif text-[#0B3D27]">Our Vision Statement</h3>
           <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-            To be the premier early childhood and primary academy in Edo State and Nigeria, recognized globally for producing well-rounded leaders equipped for 21st-century global challenges.
+            {schoolInfo.vision || "To be the premier citadel of learning in Edo State and Nigeria, recognized globally for producing visionary thinkers, scholars, and disciplined leaders equipped for 21st-century global challenges."}
           </p>
         </div>
       </div>
@@ -127,9 +128,9 @@ export const AboutPage: React.FC = () => {
         </div>
 
         <div className="bg-emerald-900/60 p-6 rounded-2xl border border-[#D4AF37]/40 max-w-2xl mx-auto text-center space-y-3">
-          <h4 className="text-base font-bold font-serif text-[#D4AF37] uppercase">The Denmin School Anthem</h4>
+          <h4 className="text-base font-bold font-serif text-[#D4AF37] uppercase">The Sharon Brain School Anthem</h4>
           <p className="text-xs md:text-sm text-emerald-100 italic leading-relaxed">
-            "Denmin Academy, beacon of light,<br />
+            "Sharon Brain Academy, beacon of light,<br />
             Where minds are ignited and future is bright.<br />
             With discipline, virtue, and truth as our guide,<br />
             In excellence and wisdom we march side by side!"
@@ -158,6 +159,48 @@ export const AboutPage: React.FC = () => {
               <p className="text-xs text-slate-600 leading-relaxed">{f.desc}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Proprietor & Executive Directorate */}
+      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-md border-2 border-[#D4AF37]/40 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-4 text-center">
+            <div className="relative inline-block max-w-xs mx-auto">
+              <div className="w-52 h-64 md:w-60 md:h-72 rounded-2xl overflow-hidden border-4 border-[#D4AF37] shadow-xl mx-auto bg-slate-100">
+                <img
+                  src={schoolInfo.principalPhotoUrl || "/src/assets/images/sharon_principal_photo_1792366303843.jpg"}
+                  alt={schoolInfo.principalName}
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="absolute -bottom-3 inset-x-0 bg-[#0B3D27] text-[#D4AF37] text-xs font-bold py-1 px-4 rounded-full shadow-lg mx-auto w-max border border-[#D4AF37]">
+                Executive Proprietor
+              </div>
+            </div>
+            <h3 className="mt-4 text-xl font-bold font-serif text-[#0B3D27]">
+              {schoolInfo.principalName?.replace(/Deborah/gi, 'Denyinye Minna') || 'Dr. Denyinye Minna Hitler'}
+            </h3>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              {schoolInfo.principalTitle?.replace(/proprietress/gi, 'Proprietor') || 'Proprietor & Executive Chairman'}
+            </p>
+          </div>
+
+          <div className="lg:col-span-8 space-y-4">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#D4AF37]">
+              <Sparkles className="w-4 h-4" />
+              <span>Proprietor's Address</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#0B3D27]">
+              Nurturing Greatness from Early Years
+            </h2>
+            <blockquote className="text-slate-700 text-sm md:text-base italic leading-relaxed border-l-4 border-[#D4AF37] pl-4 py-1">
+              "{schoolInfo.principalWelcomeMessage}"
+            </blockquote>
+            <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
+              At Sharon Brain Academy, our visionary leadership is committed to fostering an inspiring educational atmosphere where each learner is guided to reach the pinnacle of their potential through disciplined study, high academic standards, and sound moral integrity.
+            </p>
+          </div>
         </div>
       </div>
 

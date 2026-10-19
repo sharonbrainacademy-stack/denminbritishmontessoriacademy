@@ -77,7 +77,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             </div>
             <div>
               <h3 className="text-lg font-bold font-serif text-[#F9F6EF]">School Portal Login</h3>
-              <p className="text-xs text-emerald-200">Denmin British Montessori Academy</p>
+              <p className="text-xs text-emerald-200">Sharon Brain Academy</p>
             </div>
           </div>
         </div>

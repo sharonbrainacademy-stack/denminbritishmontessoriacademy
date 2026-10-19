@@ -1,6 +1,6 @@
 {
-  "name": "Denmin British Montessori Academy",
-  "description": "Official website and management portal for Denmin British Montessori Academy in Benin City, Nigeria. Featuring British-Montessori standards, online CBT exams, student result portal, and school admin system.",
+  "name": "Sharon Brain Academy",
+  "description": "Official website and management portal for Sharon Brain Academy in Ugbowo, Benin City, Nigeria. Dedicated to nurturing global leaders through high academic standards, sound moral character, online CBT exams, student result portal, and school management system.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

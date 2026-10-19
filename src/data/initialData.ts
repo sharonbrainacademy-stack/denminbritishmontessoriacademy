@@ -17,24 +17,26 @@ import {
 } from '../types';
 
 export const initialSchoolInfo: SchoolInfo = {
-  name: "Denmin British Montessori Academy",
+  name: "Sharon Brain Academy",
   motto: "Excellence, Character, and Self-Discovery",
-  tagline: "Nurturing Global Leaders with British Montessori Standards & Nigerian Moral Values",
-  address: "72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo, Benin City, Edo State, Nigeria.",
-  phone: "+234 803 456 7890",
-  email: "info@denminacademy.edu.ng",
-  whatsapp: "+234 803 456 7890",
+  tagline: "Nurturing Global Leaders with High Academic Standards & Sound Moral Values",
+  address: "No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.",
+  phone: "+2347066851455",
+  email: "info@sharonbrainacademy.edu.ng",
+  whatsapp: "+2347066851455",
   logoUrl: "/icon-192.png",
   principalName: "Dr. Denyinye Minna Hitler",
   principalTitle: "Proprietor & Executive Chairman (B.Sc, M.Sc, FCIA)",
-  principalPhotoUrl: "/src/assets/images/proprietor_photo_1789616090083.jpg",
-  principalWelcomeMessage: "Welcome to Denmin British Montessori Academy! Here, we believe every child possesses a unique spark of intellect and creativity. Combining the world-renowned Montessori hands-on sensory methodology with the British National Curriculum and rich Nigerian moral values, we nurture resilient, compassionate, and academically outstanding global citizens right here in Benin City.",
+  principalPhotoUrl: "/src/assets/images/sharon_principal_photo_1792366303843.jpg",
+  principalWelcomeMessage: "Welcome to Sharon Brain Academy! Here, we believe every child possesses a unique spark of intellect and creativity. Combining rigorous curriculum outcomes with rich moral values, we nurture resilient, compassionate, and academically outstanding global citizens right here in Benin City.",
   academicSession: "2024/2025",
   currentTerm: "1st Term",
   totalStudents: 485,
   totalTeachers: 38,
   yearsOfExcellence: 14,
   passRatePercent: 99.4,
+  mission: "To provide a stimulating, student-centered learning environment where every learner develops intellectual agility, sound moral character, creative problem-solving skills, and a lifelong passion for excellence.",
+  vision: "To be the premier citadel of learning in Edo State and Nigeria, recognized globally for producing visionary thinkers, scholars, and disciplined leaders equipped for 21st-century global challenges.",
 };
 
 export const initialUsers: User[] = [
@@ -43,7 +45,7 @@ export const initialUsers: User[] = [
     name: 'Dr. Denyinye Minna Hitler',
     email: 'admin@denmin.edu',
     role: 'admin',
-    avatarUrl: '/src/assets/images/proprietor_photo_1789616090083.jpg',
+    avatarUrl: '/src/assets/images/sharon_principal_photo_1792366303843.jpg',
   },
   {
     id: 'usr_teacher',
@@ -520,12 +522,12 @@ export const initialAdmissionApps: AdmissionApplication[] = [
 export const initialNewsArticles: NewsArticle[] = [
   {
     id: 'news_1',
-    title: 'Denmin British Montessori Academy Celebrates 14th Annual Cultural & British Heritage Festival',
+    title: 'Sharon Brain Academy Celebrates 14th Annual Cultural & Heritage Festival',
     category: 'Event',
     date: '2024-10-28',
     author: 'Editorial Office',
-    summary: 'Our pupils showcased rich Edo heritage alongside traditional British Montessori project displays before dignitaries and university scholars.',
-    content: 'The atmosphere at 72, 19th Street, Opposite UNIBEN Main Gate was electrifying as Denmin pupils delivered poetry in Edo and English, demonstrated Montessori sensory math towers, and presented robotic inventions to visiting delegates.',
+    summary: 'Our pupils showcased rich Edo heritage alongside academic project displays before dignitaries and community leaders.',
+    content: 'The atmosphere at No 2, 2nd Otakhiogbogie Street, Ugbowo was electrifying as Sharon Brain Academy pupils delivered poetry in Edo and English, demonstrated STEAM science projects, and presented innovative inventions to visiting delegates.',
     imageUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=800',
     isFeatured: true,
   },
@@ -536,7 +538,7 @@ export const initialNewsArticles: NewsArticle[] = [
     date: '2024-11-05',
     author: 'ICT Department',
     summary: 'In line with our commitment to digital literacy, parents and pupils can now take CBT practice exams and download termly result slips online.',
-    content: 'Denmin British Montessori Academy is proud to deploy a secure, zero-friction Computer-Based Testing (CBT) portal. Students can practice timed objective questions while parents can track academic progress and download instant verified PDF result slips.',
+    content: 'Sharon Brain Academy is proud to deploy a secure, zero-friction Computer-Based Testing (CBT) portal. Students can practice timed objective questions while parents can track academic progress and download instant verified PDF result slips.',
     imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
     isFeatured: false,
   },
@@ -758,7 +760,7 @@ export const initialTeachingMaterials: TeachingMaterial[] = [
     materialsNeeded: [
       'Computer Lab Workstations',
       'Sample SSD, RAM stick, and USB flash drives for tactile inspection',
-      'Denmin CBT Portal offline demo',
+      'Sharon Brain CBT Portal offline demo',
     ],
     keyConcepts: 'Computers can run software locally without internet access by caching programs and data onto device storage.',
     presentationSteps: [

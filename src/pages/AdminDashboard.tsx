@@ -318,7 +318,7 @@ export const AdminDashboard: React.FC = () => {
     const ws = XLSX.utils.json_to_sheet(students);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Students');
-    XLSX.writeFile(wb, `Denmin_Students_List_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `Sharon_Brain_Academy_Students_List_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (
@@ -334,7 +334,7 @@ export const AdminDashboard: React.FC = () => {
               School Admin Management Console
             </h1>
             <p className="text-xs text-emerald-200">
-              Welcome, {currentUser?.name || 'Administrator'} • Denmin British Montessori Academy
+              Welcome, {currentUser?.name || 'Administrator'} • Sharon Brain Academy
             </p>
           </div>
         </div>
@@ -1153,7 +1153,7 @@ export const AdminDashboard: React.FC = () => {
                   </label>
                   {schoolInfo.principalPhotoUrl && (
                     <button
-                      onClick={() => updateSchoolInfo({ principalPhotoUrl: '/src/assets/images/proprietor_photo_1789616090083.jpg' })}
+                      onClick={() => updateSchoolInfo({ principalPhotoUrl: '/src/assets/images/sharon_principal_photo_1792366303843.jpg' })}
                       className="text-[10px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-0.5"
                       title="Reset photo"
                     >
@@ -1166,7 +1166,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 bg-slate-100 rounded-xl border-2 border-[#D4AF37] overflow-hidden shrink-0 shadow-inner">
                     <img
-                      src={schoolInfo.principalPhotoUrl || '/src/assets/images/proprietor_photo_1789616090083.jpg'}
+                      src={schoolInfo.principalPhotoUrl || '/src/assets/images/sharon_principal_photo_1792366303843.jpg'}
                       alt="Proprietor Photo"
                       className="w-full h-full object-cover object-top"
                     />
@@ -1281,7 +1281,7 @@ export const AdminDashboard: React.FC = () => {
               <span>Non-Developer Staff Operation & Deployment Guide</span>
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Complete step-by-step instructions for managing Denmin British Montessori Academy without any technical help.
+              Complete step-by-step instructions for managing Sharon Brain Academy without any technical help.
             </p>
           </div>
 

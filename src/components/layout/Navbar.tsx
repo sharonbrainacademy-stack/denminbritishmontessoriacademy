@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, openLog
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
             <span className="flex items-center gap-1 text-[#F9F6EF]">
               <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="truncate max-w-xs md:max-w-md">72, 19th St, Opp UNIBEN Main Gate, Benin City</span>
+              <span className="truncate max-w-xs md:max-w-md">No 2, 2nd Otakhiogbogie St, Ugbowo, Benin City</span>
             </span>
             <a href={`tel:${schoolInfo.phone}`} className="flex items-center gap-1 hover:text-[#D4AF37] transition-colors">
               <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -132,10 +132,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, openLog
           </div>
           <div>
             <h1 className="text-lg md:text-xl font-bold font-serif text-[#0B3D27] leading-tight group-hover:text-amber-700 transition-colors">
-              Denmin British
+              Sharon Brain
             </h1>
             <p className="text-xs font-bold text-[#D4AF37] tracking-wider uppercase font-serif">
-              Montessori Academy
+              Academy
             </p>
           </div>
         </div>

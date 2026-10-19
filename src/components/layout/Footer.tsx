@@ -42,10 +42,10 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, openLoginModal }) 
               </div>
               <div>
                 <h3 className="text-lg font-bold font-serif text-white leading-tight">
-                  Denmin British
+                  Sharon Brain
                 </h3>
                 <p className="text-xs font-bold text-[#D4AF37] tracking-wider uppercase font-serif">
-                  Montessori Academy
+                  Academy
                 </p>
               </div>
             </div>
@@ -168,7 +168,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, openLoginModal }) 
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-emerald-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-300">
-          <p>© {new Date().getFullYear()} Denmin British Montessori Academy, Benin City, Nigeria. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} Sharon Brain Academy, Benin City, Nigeria. All Rights Reserved.</p>
           <div className="flex items-center gap-4">
             <button
               onClick={() => {

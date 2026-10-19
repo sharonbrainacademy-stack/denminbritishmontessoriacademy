@@ -43,7 +43,7 @@ export const AdmissionsPage: React.FC = () => {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Admission Application Form — Denmin British Montessori Academy</title>
+          <title>Admission Application Form — Sharon Brain Academy</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 30px; color: #0B3D27; }
             .header { text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 20px; }
@@ -57,8 +57,8 @@ export const AdmissionsPage: React.FC = () => {
         </head>
         <body>
           <div class="header">
-            <h1>DENMIN BRITISH MONTESSORI ACADEMY</h1>
-            <p>72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo, Benin City, Nigeria</p>
+            <h1>SHARON BRAIN ACADEMY</h1>
+            <p>No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria</p>
             <p><strong>OFFICIAL ADMISSION APPLICATION FORM (2024/2025 SESSION)</strong></p>
           </div>
           <div class="field"><label>Pupil's Full Name:</label><div class="box"></div></div>
@@ -106,7 +106,7 @@ export const AdmissionsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
-            { step: '01', title: 'Submit Application', desc: 'Fill out the online application form below or visit our admin office at 72, 19th Street, Benin City.' },
+            { step: '01', title: 'Submit Application', desc: 'Fill out the online application form below or visit our admin office at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City.' },
             { step: '02', title: 'Interactive Readiness Test', desc: 'A friendly Montessori assessment designed to gauge your child’s cognitive and social development level.' },
             { step: '03', title: 'Admission Offer', desc: 'Successful candidates receive an official admission offer letter along with parent orientation guidelines.' },
             { step: '04', title: 'Registration & Resumption', desc: 'Complete fee payment, collect uniform & learning materials, and welcome your child to class!' },

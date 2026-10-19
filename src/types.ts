@@ -205,6 +205,8 @@ export interface SchoolInfo {
   totalTeachers: number;
   yearsOfExcellence: number;
   passRatePercent: number;
+  mission?: string;
+  vision?: string;
 }
 
 export interface StudentAttendanceRecord {

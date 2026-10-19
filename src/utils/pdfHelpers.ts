@@ -188,12 +188,12 @@ export const generateResultPDF = (result: ResultSlip, school: SchoolInfo) => {
   doc.circle(162.5, startY + 4, 6, 'S');
   doc.setFontSize(6);
   doc.setTextColor(212, 175, 55);
-  doc.text("DENMIN SEAL", 162.5, startY + 4.5, { align: 'center' });
+  doc.text("OFFICIAL SEAL", 162.5, startY + 4.5, { align: 'center' });
 
   // Footer
   doc.setFontSize(7.5);
   doc.setTextColor(120, 120, 120);
-  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} | Denmin British Montessori Academy Verification Portal`, 105, 287, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} | Sharon Brain Academy Verification Portal`, 105, 287, { align: 'center' });
 
   // Save PDF
   doc.save(`${result.studentName.replace(/\s+/g, '_')}_Result_${result.term}_${result.academicSession.replace('/', '-')}.pdf`);
@@ -267,7 +267,7 @@ export const generateReceiptPDF = (receipt: FeePayment, school: SchoolInfo) => {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(8);
   doc.text('Bursar / Accounts Dept Signature: _______________________', 10, 112);
-  doc.text('Thank you for choosing Denmin British Montessori Academy.', 74, 125, { align: 'center' });
+  doc.text('Thank you for choosing Sharon Brain Academy.', 74, 125, { align: 'center' });
 
   doc.save(`Receipt_${receipt.receiptNo.replace(/\//g, '-')}.pdf`);
 };

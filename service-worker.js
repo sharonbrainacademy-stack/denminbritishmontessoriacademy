@@ -1,5 +1,5 @@
-// Service Worker for Denmin British Montessori Academy
-const CACHE_NAME = 'denmin-british-cache-v2';
+// Service Worker for Sharon Brain Academy
+const CACHE_NAME = 'sharon-brain-cache-v1';
 
 const STATIC_ASSETS = [
   '/',
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static assets for Denmin British');
+      console.log('[Service Worker] Caching static assets for Sharon Brain Academy');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );

@@ -63,19 +63,19 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
     {
       name: 'Engr. & Mrs. Victor Igbinoba',
       parentOf: 'Eseosa (Primary 5) & Nosa (Nursery 2)',
-      quote: 'Denmin British Montessori Academy has been a blessing to our family. The balance between British academic rigor and hands-on Montessori sensory learning transformed our daughter Eseosa into a top-scoring, confident student!',
+      quote: 'Sharon Brain Academy has been a blessing to our family. The balance between academic rigor and moral values transformed our daughter Eseosa into a top-scoring, confident student!',
       rating: 5,
     },
     {
       name: 'Dr. Osas Oviawe',
       parentOf: 'Osasumwen Jr. (Primary 5)',
-      quote: 'As a university lecturer opposite the school gate, proximity and quality were paramount. Denmin exceeds expectations—the new CBT exam portal and instant PDF result slips make parent tracking effortless.',
+      quote: 'Living here in Ugbowo, proximity and quality were paramount. Sharon Brain Academy exceeds expectations—the new CBT exam portal and instant PDF result slips make parent tracking effortless.',
       rating: 5,
     },
     {
       name: 'Alhaji & Hajia Ibrahim Bello',
       parentOf: 'Aisha (Primary 6)',
-      quote: 'The emphasis on discipline, public speaking diction, and moral character is unmatched in Benin City. We are proud Denmin parents!',
+      quote: 'The emphasis on discipline, public speaking diction, and moral character is unmatched in Benin City. We are proud Sharon Brain parents!',
       rating: 5,
     },
   ];
@@ -105,7 +105,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
               </p>
 
               <p className="text-sm md:text-base text-emerald-100 max-w-2xl leading-relaxed">
-                {schoolInfo.tagline}. Located conveniently at 72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo.
+                {schoolInfo.tagline}. Located conveniently at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City, Edo State.
               </p>
 
               {/* Action Buttons */}
@@ -158,7 +158,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
                 <div className="relative h-64 rounded-xl overflow-hidden mb-4">
                   <img
                     src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800"
-                    alt="Denmin Montessori Classroom"
+                    alt="Sharon Brain Classroom"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-3 right-3 bg-[#0B3D27] text-[#D4AF37] text-xs font-bold px-3 py-1 rounded-full shadow-md">
@@ -192,54 +192,42 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
         </div>
       </section>
 
-      {/* Proprietor / Principal Welcome Message */}
+
+      {/* School Welcome Message */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-2xl p-8 md:p-12 shadow-md border border-[#D4AF37]/30">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-4 text-center">
-              <div className="relative inline-block max-w-xs mx-auto">
-                <div className="w-52 h-64 md:w-60 md:h-72 rounded-2xl overflow-hidden border-4 border-[#D4AF37] shadow-xl mx-auto bg-slate-100">
-                  <img
-                    src={schoolInfo.principalPhotoUrl || "/src/assets/images/proprietor_photo_1789616090083.jpg"}
-                    alt={schoolInfo.principalName}
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="absolute -bottom-3 inset-x-0 bg-[#0B3D27] text-[#D4AF37] text-xs font-bold py-1 px-4 rounded-full shadow-lg mx-auto w-max border border-[#D4AF37]">
-                  Executive Proprietor
-                </div>
-              </div>
-              <h3 className="mt-4 text-xl font-bold font-serif text-[#0B3D27]">
-                {schoolInfo.principalName?.replace(/Deborah/gi, 'Denyinye Minna') || 'Dr. Denyinye Minna Hitler'}
-              </h3>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                {schoolInfo.principalTitle?.replace(/proprietress/gi, 'Proprietor') || 'Proprietor & Executive Chairman'}
-              </p>
+        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-md border border-[#D4AF37]/30 relative overflow-hidden">
+          <div className="max-w-4xl mx-auto space-y-6 text-center">
+            <div className="inline-flex items-center gap-2 bg-emerald-50 border border-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[#0B3D27] mx-auto">
+              <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+              <span>Welcome to Sharon Brain Academy</span>
             </div>
 
-            <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#D4AF37]">
-                <Sparkles className="w-4 h-4" />
-                <span>Welcome Message</span>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#0B3D27]">
-                Nurturing Greatness from Early Years
-              </h2>
-              <blockquote className="text-slate-700 text-sm md:text-base italic leading-relaxed border-l-4 border-[#D4AF37] pl-4 py-1">
-                "{schoolInfo.principalWelcomeMessage}"
-              </blockquote>
-              <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                At Denmin British Montessori Academy, we blend the world's finest self-directed Montessori apparatus with structured British National Curriculum outcomes. Whether your child is taking their first steps in Pre-Nursery or preparing for entrance examinations into top secondary institutions, we guarantee a safe, uplifting, and transformative educational experience.
-              </p>
-              <div className="pt-2">
-                <button
-                  onClick={() => setActiveTab('about')}
-                  className="bg-[#0B3D27] hover:bg-emerald-900 text-white font-bold px-5 py-2.5 rounded-lg text-xs transition-colors inline-flex items-center gap-1.5"
-                >
-                  <span>Learn More About Our Story</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <h2 className="text-2xl sm:text-4xl font-bold font-serif text-[#0B3D27]">
+              Nurturing Greatness from Early Years
+            </h2>
+
+            <blockquote className="text-slate-700 text-base md:text-lg italic leading-relaxed border-y-2 border-[#D4AF37]/40 py-4 max-w-3xl mx-auto">
+              "{schoolInfo.principalWelcomeMessage}"
+            </blockquote>
+
+            <p className="text-xs md:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
+              At Sharon Brain Academy, we blend academic rigor with self-directed learning and strong moral character. Whether your child is taking their first steps in Pre-Nursery or preparing for entrance examinations into top secondary institutions, we guarantee a safe, uplifting, and transformative educational experience.
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+              <button
+                onClick={() => setActiveTab('about')}
+                className="bg-[#0B3D27] hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition-all shadow inline-flex items-center gap-2"
+              >
+                <span>Learn More About Our Story & Leadership</span>
+                <ArrowRight className="w-4 h-4 text-[#D4AF37]" />
+              </button>
+              <button
+                onClick={() => setActiveTab('admissions')}
+                className="bg-[#D4AF37] hover:bg-amber-400 text-[#0B3D27] font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition-all shadow"
+              >
+                Apply for Admission
+              </button>
             </div>
           </div>
         </div>
@@ -292,7 +280,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
             Why Parents Trust Us
           </span>
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0B3D27]">
-            The Denmin Standard of Educational Excellence
+            The Sharon Brain Standard of Educational Excellence
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
             We provide a world-class foundation designed to cultivate creative thinking, leadership, and sound moral character in every pupil.
@@ -374,7 +362,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
               Give Your Child the Gift of a World-Class British Montessori Foundation
             </h2>
             <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed">
-              Schedule a campus tour or apply online today. Visit us at 72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo, Benin City.
+              Schedule a campus tour or apply online today. Visit us at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City, Edo State.
             </p>
 
             <div className="pt-4 flex flex-wrap items-center gap-4">

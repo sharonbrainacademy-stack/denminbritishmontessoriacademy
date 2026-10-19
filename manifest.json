@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "Denmin British Montessori Academy",
-  "short_name": "Denmin British",
+  "name": "Sharon Brain Academy",
+  "short_name": "Sharon Brain",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0B3D27",
-  "description": "Official portal for Denmin British Montessori Academy - Montessori learning, offline CBT exams, attendance register, and student result slips.",
+  "description": "Official portal for Sharon Brain Academy - Academic learning, offline CBT exams, attendance register, and student result slips.",
   "icons": [
     {
       "src": "/icon-192.png",

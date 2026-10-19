@@ -10,15 +10,15 @@ async function startServer() {
 
   // API routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", school: "Denmin British Montessori Academy" });
+    res.json({ status: "ok", school: "Sharon Brain Academy" });
   });
 
   app.get("/api/info", (req, res) => {
     res.json({
-      name: "Denmin British Montessori Academy",
-      address: "72, 19th Street, Opposite UNIBEN Main Gate, Ugbowo, Benin City, Nigeria.",
-      phone: "+234 803 456 7890",
-      email: "info@denminacademy.edu.ng",
+      name: "Sharon Brain Academy",
+      address: "No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.",
+      phone: "+2347066851455",
+      email: "info@sharonbrainacademy.edu.ng",
     });
   });
 

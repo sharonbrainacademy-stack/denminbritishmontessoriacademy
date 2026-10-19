@@ -62,7 +62,7 @@ export const PWAStatus: React.FC = () => {
         <div className="bg-[#0B3D27] text-white px-4 py-2.5 text-xs font-semibold flex items-center justify-between shadow-xl fixed bottom-4 left-4 right-4 md:right-auto md:max-w-md z-50 rounded-2xl border-2 border-[#D4AF37]">
           <div className="flex items-center gap-2.5">
             <WifiOff className="w-4 h-4 text-[#D4AF37] animate-pulse shrink-0" />
-            <span>You are offline. Showing cached Denmin British Montessori resources.</span>
+            <span>You are offline. Showing cached Sharon Brain Academy resources.</span>
           </div>
         </div>
       )}
@@ -73,7 +73,7 @@ export const PWAStatus: React.FC = () => {
           <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center p-1.5 border border-[#D4AF37] shadow-inner shrink-0 overflow-hidden">
             <img
               src="/icon-192.png"
-              alt="Denmin British Icon"
+              alt="Sharon Brain Academy Icon"
               className="w-full h-full object-contain"
               onError={(e) => {
                 // Fallback to graduation cap icon if image not available
@@ -86,7 +86,7 @@ export const PWAStatus: React.FC = () => {
               <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4AF37]">Install PWA</h4>
               <span className="text-[9px] bg-emerald-900 px-1.5 py-0.5 rounded text-emerald-200">Offline App</span>
             </div>
-            <p className="text-xs font-bold text-white mt-0.5">Denmin British Montessori</p>
+            <p className="text-xs font-bold text-white mt-0.5">Sharon Brain Academy</p>
             <p className="text-[11px] text-emerald-100/90 leading-tight">Install app for instant offline access to CBT exams, results, and attendance.</p>
           </div>
           <div className="flex items-center gap-1.5">

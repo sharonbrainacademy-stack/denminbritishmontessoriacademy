@@ -108,7 +108,20 @@ interface SchoolContextType {
 
 const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'denmin_school_data_v1';
+const STORAGE_KEY = 'sharon_brain_school_data_v1';
+
+// Clean up legacy storage from prior app state
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('denmin_')) {
+        localStorage.removeItem(key);
+      }
+    });
+  }
+} catch (e) {
+  // Ignore in SSR
+}
 
 // Safe localStorage loader helper for full offline resilience
 function loadInitialState<T>(key: string, fallback: T): T {
@@ -137,9 +150,17 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
-  const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>(() =>
-    loadInitialState('school_info', initialSchoolInfo)
-  );
+  const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>(() => {
+    const loaded = loadInitialState('school_info', initialSchoolInfo);
+    return {
+      ...loaded,
+      name: 'Sharon Brain Academy',
+      phone: '+2347066851455',
+      whatsapp: '+2347066851455',
+      address: 'No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.',
+      principalPhotoUrl: '/src/assets/images/sharon_principal_photo_1792366303843.jpg',
+    };
+  });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_user`);
@@ -206,6 +227,19 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         let needsUpdate = false;
         const cleanedInfo = { ...rawInfo };
 
+        if (cleanedInfo.name !== 'Sharon Brain Academy') {
+          cleanedInfo.name = 'Sharon Brain Academy';
+          needsUpdate = true;
+        }
+        if (cleanedInfo.phone !== '+2347066851455') {
+          cleanedInfo.phone = '+2347066851455';
+          cleanedInfo.whatsapp = '+2347066851455';
+          needsUpdate = true;
+        }
+        if (cleanedInfo.address !== 'No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.') {
+          cleanedInfo.address = 'No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.';
+          needsUpdate = true;
+        }
         if (cleanedInfo.principalName?.includes('Deborah')) {
           cleanedInfo.principalName = 'Dr. Denyinye Minna Hitler';
           needsUpdate = true;
@@ -216,6 +250,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         if (!cleanedInfo.logoUrl) {
           cleanedInfo.logoUrl = '/icon-192.png';
+          needsUpdate = true;
+        }
+        if (cleanedInfo.principalPhotoUrl?.includes('proprietor_photo_1789616090083') || !cleanedInfo.principalPhotoUrl) {
+          cleanedInfo.principalPhotoUrl = '/src/assets/images/sharon_principal_photo_1792366303843.jpg';
           needsUpdate = true;
         }
 
