@@ -12,6 +12,7 @@ import { NewsEventsPage } from './pages/NewsEventsPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { StaffPortalPage } from './pages/StaffPortalPage';
+import { SchoolCalendar } from './components/calendar/SchoolCalendar';
 import { PWAStatus } from './components/pwa/PWAStatus';
 
 export default function App() {
@@ -28,7 +29,7 @@ export default function App() {
     }
   };
 
-  const isKnownTab = ['home', 'about', 'admissions', 'academics', 'resultscbt', 'news', 'contact', 'admin', 'staff', 'teacher', 'staffportal'].includes(activeTab);
+  const isKnownTab = ['home', 'about', 'admissions', 'academics', 'calendar', 'resultscbt', 'news', 'contact', 'admin', 'staff', 'teacher', 'staffportal'].includes(activeTab);
 
   return (
     <SchoolProvider>
@@ -54,6 +55,12 @@ export default function App() {
           {activeTab === 'admissions' && <AdmissionsPage />}
 
           {activeTab === 'academics' && <AcademicsPage />}
+          
+          {activeTab === 'calendar' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+              <SchoolCalendar />
+            </div>
+          )}
 
           {activeTab === 'resultscbt' && <ResultsCBTPage />}
 

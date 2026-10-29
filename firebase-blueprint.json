@@ -2,7 +2,7 @@
   "entities": {
     "school_info": {
       "title": "School Info",
-      "description": "General metadata for Denmin British Montessori Academy",
+      "description": "General metadata for Sharon Brain Academy",
       "type": "object",
       "properties": {
         "name": { "type": "string" },

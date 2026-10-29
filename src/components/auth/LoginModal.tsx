@@ -12,7 +12,7 @@ interface LoginModalProps {
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
   const { login } = useSchool();
   const [selectedRole, setSelectedRole] = useState<'admin' | 'teacher' | 'student' | 'parent'>('student');
-  const [identifier, setIdentifier] = useState('DEN/2024/001');
+  const [identifier, setIdentifier] = useState('SBA/2024/001');
   const [password, setPassword] = useState('student123');
   const [error, setError] = useState('');
 
@@ -22,16 +22,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     setSelectedRole(role);
     setError('');
     if (role === 'admin') {
-      setIdentifier('admin@denmin.edu');
+      setIdentifier('admin@sharonbrainacademy.edu.ng');
       setPassword('admin123');
     } else if (role === 'teacher') {
-      setIdentifier('teacher@denmin.edu');
+      setIdentifier('teacher@sharonbrainacademy.edu.ng');
       setPassword('teacher123');
     } else if (role === 'student') {
-      setIdentifier('DEN/2024/001');
+      setIdentifier('SBA/2024/001');
       setPassword('student123');
     } else if (role === 'parent') {
-      setIdentifier('parent@denmin.edu');
+      setIdentifier('parent@sharonbrainacademy.edu.ng');
       setPassword('parent123');
     }
   };
@@ -128,7 +128,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                 required
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
-                placeholder={selectedRole === 'student' ? 'e.g. DEN/2024/001' : 'e.g. admin@denmin.edu'}
+                placeholder={selectedRole === 'student' ? 'e.g. SBA/2024/001' : 'e.g. admin@sharonbrainacademy.edu.ng'}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B3D27]"
               />
             </div>

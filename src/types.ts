@@ -77,6 +77,8 @@ export interface QuestionOption {
   text: string;
 }
 
+export type CBTAssessmentType = '1st_test' | '2nd_test' | 'exam';
+
 export interface CBTQuestion {
   id: string;
   questionText: string;
@@ -86,13 +88,26 @@ export interface CBTQuestion {
   marks: number;
 }
 
+export interface CBTTheoryQuestion {
+  id: string;
+  questionText: string;
+  maxMarks: number;
+  modelAnswer?: string;
+  guidelines?: string;
+}
+
 export interface CBTExam {
   id: string;
   title: string;
+  assessmentType: CBTAssessmentType;
   className: string;
   subject: string;
+  term?: string;
+  academicSession?: string;
   durationMinutes: number;
   totalMarks: number;
+  objectiveMarks?: number;
+  theoryMarks?: number;
   passingScorePercent: number;
   shuffleQuestions: boolean;
   preventTabSwitch: boolean;
@@ -100,6 +115,7 @@ export interface CBTExam {
   instructions: string;
   createdAt: string;
   questions: CBTQuestion[];
+  theoryQuestions?: CBTTheoryQuestion[];
   scheduleStart?: string; // YYYY-MM-DDTHH:mm or ISO date
   scheduleEnd?: string;   // YYYY-MM-DDTHH:mm or ISO date
 }
@@ -108,11 +124,25 @@ export interface CBTAttempt {
   id: string;
   examId: string;
   examTitle: string;
+  assessmentType: CBTAssessmentType;
+  subject: string;
+  term?: string;
+  academicSession?: string;
   studentId: string;
   studentName: string;
   admissionNo: string;
   scoreObtained: number;
   totalMarks: number;
+  objectiveScore: number;
+  objectiveTotalMarks: number;
+  theoryScore: number;
+  theoryTotalMarks: number;
+  theoryAnswers?: Record<string, string>; // theoryQuestionId -> studentWrittenText
+  theoryScores?: Record<string, number>;  // theoryQuestionId -> teacherScore
+  theoryFeedback?: Record<string, string>; // theoryQuestionId -> teacherFeedback
+  theoryGraded?: boolean;
+  teacherReviewNotes?: string;
+  publishedToParents?: boolean;
   percentage: number;
   passed: boolean;
   startedAt: string;
@@ -250,4 +280,21 @@ export interface TeachingMaterial {
   evaluationQuestions: string[];
   authorStaffName?: string;
   lastUpdated: string;
+}
+
+export type CalendarEventCategory = 'term_date' | 'holiday' | 'exam' | 'activity' | 'meeting';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: string; // YYYY-MM-DD
+  endDate?: string;   // YYYY-MM-DD
+  category: CalendarEventCategory;
+  term: '1st Term' | '2nd Term' | '3rd Term' | 'All Year';
+  academicSession: string; // e.g. "2024/2025"
+  targetAudience?: string;
+  location?: string;
+  time?: string;
+  isKeyDate?: boolean;
 }

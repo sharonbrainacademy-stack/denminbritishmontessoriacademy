@@ -179,7 +179,7 @@ export const AboutPage: React.FC = () => {
               </div>
             </div>
             <h3 className="mt-4 text-xl font-bold font-serif text-[#0B3D27]">
-              {schoolInfo.principalName?.replace(/Deborah/gi, 'Denyinye Minna') || 'Dr. Denyinye Minna Hitler'}
+              {schoolInfo.principalName || 'Mr Imhoenegamhe Stephen Moses'}
             </h3>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
               {schoolInfo.principalTitle?.replace(/proprietress/gi, 'Proprietor') || 'Proprietor & Executive Chairman'}

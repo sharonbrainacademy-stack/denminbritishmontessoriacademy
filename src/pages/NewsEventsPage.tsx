@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Tag, User, Sparkles, Filter, Image as ImageIcon } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
+import { SchoolCalendar } from '../components/calendar/SchoolCalendar';
 
 export const NewsEventsPage: React.FC = () => {
   const { newsArticles, galleryPhotos } = useSchool();
@@ -86,6 +87,14 @@ export const NewsEventsPage: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Official Academic Calendar & Events */}
+      <div className="pt-6 border-t border-slate-200">
+        <SchoolCalendar
+          title="Official School Events & Academic Calendar"
+          subtitle="Explore term dates, continuous assessment test periods, terminal examinations, public holidays, and school celebrations."
+        />
       </div>
 
       {/* Interactive Photo Gallery */}

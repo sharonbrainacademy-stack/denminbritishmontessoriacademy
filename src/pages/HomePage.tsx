@@ -15,8 +15,10 @@ import {
   Heart,
   Globe,
   HelpCircle,
+  Calendar,
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
+import { SchoolCalendar } from '../components/calendar/SchoolCalendar';
 
 interface HomePageProps {
   setActiveTab: (tab: string) => void;
@@ -133,6 +135,14 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
                 >
                   Staff / Admin Login
                 </button>
+
+                <a
+                  href="#school-calendar"
+                  className="bg-emerald-950/80 hover:bg-emerald-900 text-[#D4AF37] font-semibold px-5 py-3.5 rounded-xl text-sm border border-[#D4AF37]/40 transition-all flex items-center gap-2 shadow"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Academic Calendar & Dates</span>
+                </a>
               </div>
 
               {/* Quick Info Badges */}
@@ -308,6 +318,11 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
             );
           })}
         </div>
+      </section>
+
+      {/* Academic Calendar & Term Dates Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
+        <SchoolCalendar />
       </section>
 
       {/* Parent Testimonials */}

@@ -71,6 +71,7 @@ interface SchoolContextType {
 
   cbtAttempts: CBTAttempt[];
   recordCBTAttempt: (attempt: Omit<CBTAttempt, 'id'>) => void;
+  updateCBTAttempt: (id: string, data: Partial<CBTAttempt>) => void;
 
   // Attendance (Student & Staff)
   studentAttendance: StudentAttendanceRecord[];
@@ -110,12 +111,31 @@ const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'sharon_brain_school_data_v1';
 
-// Clean up legacy storage from prior app state
+// Safely migrate any legacy records from denmin_ prefixes to ensure no student records are lost
 try {
   if (typeof window !== 'undefined' && window.localStorage) {
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('denmin_')) {
-        localStorage.removeItem(key);
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('denmin_school_data_v1_')) {
+        const subKey = k.replace('denmin_school_data_v1_', '');
+        const currentTargetKey = `${STORAGE_KEY}_${subKey}`;
+        const existingData = localStorage.getItem(currentTargetKey);
+        const legacyData = localStorage.getItem(k);
+        if (legacyData && !existingData) {
+          localStorage.setItem(currentTargetKey, legacyData);
+        } else if (legacyData && existingData) {
+          try {
+            const parsedLegacy = JSON.parse(legacyData);
+            const parsedCurrent = JSON.parse(existingData);
+            if (Array.isArray(parsedLegacy) && Array.isArray(parsedCurrent)) {
+              const map = new Map<string, any>();
+              parsedLegacy.forEach((item: any) => { if (item.id) map.set(item.id, item); });
+              parsedCurrent.forEach((item: any) => { if (item.id) map.set(item.id, item); });
+              localStorage.setItem(currentTargetKey, JSON.stringify(Array.from(map.values())));
+            }
+          } catch (err) {
+            // ignore
+          }
+        }
       }
     });
   }
@@ -123,17 +143,108 @@ try {
   // Ignore in SSR
 }
 
-// Safe localStorage loader helper for full offline resilience
+// Automatic data sanitizer to upgrade any legacy DEN/ abbreviations and emails
+function sanitizeSchoolRecord<T>(item: T): { sanitized: T; changed: boolean } {
+  if (!item || typeof item !== 'object') {
+    return { sanitized: item, changed: false };
+  }
+  const str = JSON.stringify(item);
+  if (
+    str.includes('DEN/') ||
+    str.includes('STF/DEN') ||
+    str.includes('denmin') ||
+    str.includes('Denmin')
+  ) {
+    const updatedStr = str
+      .replace(/DEN\/202/g, 'SBA/202')
+      .replace(/DEN\//g, 'SBA/')
+      .replace(/STF\/DEN\//g, 'STF/SBA/')
+      .replace(/@denminacademy\.edu\.ng/g, '@sharonbrainacademy.edu.ng')
+      .replace(/@denmin\.edu/g, '@sharonbrainacademy.edu.ng')
+      .replace(/student\.denmin\.edu/g, 'student.sharonbrainacademy.edu.ng')
+      .replace(/Denmin British Montessori Academy/g, 'Sharon Brain Academy')
+      .replace(/Denmin British Academy/g, 'Sharon Brain Academy')
+      .replace(/Denmin Academy/g, 'Sharon Brain Academy');
+    if (updatedStr !== str) {
+      try {
+        const sanitized = JSON.parse(updatedStr) as T;
+        return { sanitized, changed: true };
+      } catch (e) {
+        return { sanitized: item, changed: false };
+      }
+    }
+  }
+  return { sanitized: item, changed: false };
+}
+
+// Safe localStorage loader helper for full offline resilience with automatic sanitization
 function loadInitialState<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(`${STORAGE_KEY}_${key}`);
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      const { sanitized, changed } = sanitizeSchoolRecord(parsed);
+      if (changed) {
+        localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(sanitized));
+      }
+      return sanitized;
+    }
+    const legacySaved = localStorage.getItem(`denmin_school_data_v1_${key}`);
+    if (legacySaved) {
+      const parsed = JSON.parse(legacySaved);
+      const { sanitized } = sanitizeSchoolRecord(parsed);
+      localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(sanitized));
+      return sanitized;
     }
   } catch (e) {
     console.warn(`Failed reading ${key} from storage:`, e);
   }
   return fallback;
+}
+
+// Bi-directional merge helper: preserves both Firestore and local data, pushes missing local data to Firestore,
+// and automatically sanitizes legacy DEN/ abbreviations to SBA/ in both local and Firestore storage.
+function mergeAndSyncWithFirestore<T extends { id: string }>(
+  remoteList: T[],
+  collectionName: string,
+  storageKey: string,
+  initialFallback: T[]
+): T[] {
+  const localList = loadInitialState<T[]>(storageKey, initialFallback);
+  const map = new Map<string, T>();
+  const toUpdateInFirestore: T[] = [];
+
+  // 1. Add all remote docs, sanitizing any legacy abbreviations
+  remoteList.forEach(rawItem => {
+    const { sanitized, changed } = sanitizeSchoolRecord(rawItem);
+    map.set(sanitized.id, sanitized);
+    if (changed) {
+      toUpdateInFirestore.push(sanitized);
+    }
+  });
+
+  // 2. Identify local docs missing from Firestore or needing sanitization
+  localList.forEach(rawItem => {
+    const { sanitized, changed } = sanitizeSchoolRecord(rawItem);
+    if (!map.has(sanitized.id)) {
+      map.set(sanitized.id, sanitized);
+      toUpdateInFirestore.push(sanitized);
+    } else if (changed) {
+      map.set(sanitized.id, sanitized);
+      toUpdateInFirestore.push(sanitized);
+    }
+  });
+
+  // 3. Immediately persist missing and sanitized items to Firestore
+  if (toUpdateInFirestore.length > 0) {
+    toUpdateInFirestore.forEach(item => {
+      setDoc(doc(db, collectionName, item.id), item as any, { merge: true })
+        .then(() => console.log(`[Storage Sync] Cleaned & Synced ${collectionName} item to Firestore:`, item.id))
+        .catch(err => console.warn(`[Storage Sync] Queued ${collectionName} item for sync:`, err));
+    });
+  }
+
+  return Array.from(map.values());
 }
 
 export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -158,6 +269,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       phone: '+2347066851455',
       whatsapp: '+2347066851455',
       address: 'No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.',
+      principalName: 'Mr Imhoenegamhe Stephen Moses',
       principalPhotoUrl: '/src/assets/images/sharon_principal_photo_1792366303843.jpg',
     };
   });
@@ -167,8 +279,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.name && parsed.name.includes('Deborah')) {
-          parsed.name = 'Dr. Denyinye Minna Hitler';
+        if (parsed.name && (parsed.name.includes('Deborah') || parsed.name.includes('Denyinye') || parsed.name.includes('Hitler'))) {
+          parsed.name = 'Mr Imhoenegamhe Stephen Moses';
         }
         return parsed;
       } catch (e) {
@@ -240,8 +352,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           cleanedInfo.address = 'No 2, 2nd Otakhiogbogie Street, Ugbowo Benin City, Edo State Nigeria.';
           needsUpdate = true;
         }
-        if (cleanedInfo.principalName?.includes('Deborah')) {
-          cleanedInfo.principalName = 'Dr. Denyinye Minna Hitler';
+        if (cleanedInfo.principalName !== 'Mr Imhoenegamhe Stephen Moses') {
+          cleanedInfo.principalName = 'Mr Imhoenegamhe Stephen Moses';
           needsUpdate = true;
         }
         if (cleanedInfo.principalTitle && /proprietress/i.test(cleanedInfo.principalTitle)) {
@@ -269,79 +381,79 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // 2. Students
     const unsubStudents = onSnapshot(collection(db, 'students'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Student));
-        setStudents(list);
-        localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Student));
+      if (remoteList.length === 0) {
         initialStudents.forEach(s => setDoc(doc(db, 'students', s.id), s).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'students', 'students', initialStudents);
+      setStudents(merged);
+      localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local students data', err));
 
     // 3. Teachers
     const unsubTeachers = onSnapshot(collection(db, 'teachers'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Teacher));
-        setTeachers(list);
-        localStorage.setItem(`${STORAGE_KEY}_teachers`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Teacher));
+      if (remoteList.length === 0) {
         initialTeachers.forEach(t => setDoc(doc(db, 'teachers', t.id), t).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'teachers', 'teachers', initialTeachers);
+      setTeachers(merged);
+      localStorage.setItem(`${STORAGE_KEY}_teachers`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local teachers data', err));
 
     // 4. Result Slips
     const unsubResults = onSnapshot(collection(db, 'result_slips'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as ResultSlip));
-        setResultSlips(list);
-        localStorage.setItem(`${STORAGE_KEY}_result_slips`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as ResultSlip));
+      if (remoteList.length === 0) {
         initialResultSlips.forEach(r => setDoc(doc(db, 'result_slips', r.id), r).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'result_slips', 'result_slips', initialResultSlips);
+      setResultSlips(merged);
+      localStorage.setItem(`${STORAGE_KEY}_result_slips`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local result slips data', err));
 
     // 5. CBT Exams
     const unsubExams = onSnapshot(collection(db, 'cbt_exams'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CBTExam));
-        setCbtExams(list);
-        localStorage.setItem(`${STORAGE_KEY}_cbt_exams`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CBTExam));
+      if (remoteList.length === 0) {
         initialCBTExams.forEach(e => setDoc(doc(db, 'cbt_exams', e.id), e).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'cbt_exams', 'cbt_exams', initialCBTExams);
+      setCbtExams(merged);
+      localStorage.setItem(`${STORAGE_KEY}_cbt_exams`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local CBT exams data', err));
 
     // 6. CBT Attempts
     const unsubAttempts = onSnapshot(collection(db, 'cbt_attempts'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CBTAttempt));
-        setCbtAttempts(list);
-        localStorage.setItem(`${STORAGE_KEY}_cbt_attempts`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CBTAttempt));
+      if (remoteList.length === 0) {
         initialCBTAttempts.forEach(a => setDoc(doc(db, 'cbt_attempts', a.id), a).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'cbt_attempts', 'cbt_attempts', initialCBTAttempts);
+      setCbtAttempts(merged);
+      localStorage.setItem(`${STORAGE_KEY}_cbt_attempts`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local CBT attempts data', err));
 
     // 7. Student Attendance
     const unsubStudentAtt = onSnapshot(collection(db, 'student_attendance'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as StudentAttendanceRecord));
-        setStudentAttendance(list);
-        localStorage.setItem(`${STORAGE_KEY}_student_attendance`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as StudentAttendanceRecord));
+      if (remoteList.length === 0) {
         initialStudentAttendance.forEach(a => setDoc(doc(db, 'student_attendance', a.id), a).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'student_attendance', 'student_attendance', initialStudentAttendance);
+      setStudentAttendance(merged);
+      localStorage.setItem(`${STORAGE_KEY}_student_attendance`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local student attendance', err));
 
     // 8. Staff Attendance
     const unsubStaffAtt = onSnapshot(collection(db, 'staff_attendance'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as StaffAttendanceRecord));
-        setStaffAttendance(list);
-        localStorage.setItem(`${STORAGE_KEY}_staff_attendance`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as StaffAttendanceRecord));
+      if (remoteList.length === 0) {
         initialStaffAttendance.forEach(a => setDoc(doc(db, 'staff_attendance', a.id), a).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'staff_attendance', 'staff_attendance', initialStaffAttendance);
+      setStaffAttendance(merged);
+      localStorage.setItem(`${STORAGE_KEY}_staff_attendance`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local staff attendance', err));
 
     // 9. Teaching Materials
@@ -357,13 +469,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // 10. Fee Payments
     const unsubPayments = onSnapshot(collection(db, 'fee_payments'), snapshot => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as FeePayment));
-        setFeePayments(list);
-        localStorage.setItem(`${STORAGE_KEY}_fee_payments`, JSON.stringify(list));
-      } else {
+      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as FeePayment));
+      if (remoteList.length === 0) {
         initialFeePayments.forEach(p => setDoc(doc(db, 'fee_payments', p.id), p).catch(console.error));
       }
+      const merged = mergeAndSyncWithFirestore(remoteList, 'fee_payments', 'fee_payments', initialFeePayments);
+      setFeePayments(merged);
+      localStorage.setItem(`${STORAGE_KEY}_fee_payments`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local fee payments data', err));
 
     // 11. News Articles
@@ -417,26 +529,37 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Student Actions with Optimistic Local Update & Offline Sync
-  const addStudent = (studentData: Omit<Student, 'id'>) => {
+  const addStudent = async (studentData: Omit<Student, 'id'>) => {
+    let cleanAdmissionNo = studentData.admissionNo || `SBA/2024/${Math.floor(100 + Math.random() * 900)}`;
+    if (cleanAdmissionNo.startsWith('DEN/')) {
+      cleanAdmissionNo = cleanAdmissionNo.replace(/^DEN\//, 'SBA/');
+    }
     const id = `std_${Date.now()}`;
-    const newStudent: Student = { ...studentData, id };
+    const newStudent: Student = { ...studentData, admissionNo: cleanAdmissionNo, id };
     setStudents(prev => {
-      const next = [newStudent, ...prev];
+      const next = [newStudent, ...prev.filter(s => s.id !== id)];
       localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'students', id), newStudent).catch(err => {
-      console.warn('Student registered offline, queued in local cache:', err);
-    });
+    try {
+      await setDoc(doc(db, 'students', id), newStudent);
+      console.log('[Storage Success] Student written to cloud Firestore:', id);
+    } catch (err) {
+      console.warn('[Storage Notice] Student saved in local storage, queued for sync:', err);
+    }
   };
 
   const updateStudent = (id: string, data: Partial<Student>) => {
+    const cleanData = { ...data };
+    if (cleanData.admissionNo && cleanData.admissionNo.startsWith('DEN/')) {
+      cleanData.admissionNo = cleanData.admissionNo.replace(/^DEN\//, 'SBA/');
+    }
     setStudents(prev => {
-      const next = prev.map(s => (s.id === id ? { ...s, ...data } : s));
+      const next = prev.map(s => (s.id === id ? { ...s, ...cleanData } : s));
       localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'students', id), data, { merge: true }).catch(console.error);
+    setDoc(doc(db, 'students', id), cleanData, { merge: true }).catch(console.error);
   };
 
   const deleteStudent = (id: string) => {
@@ -450,8 +573,18 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Teacher Actions
   const addTeacher = (teacherData: Omit<Teacher, 'id'>) => {
+    let cleanStaffId = teacherData.staffId || `STF/SBA/${Math.floor(100 + Math.random() * 900)}`;
+    if (cleanStaffId.startsWith('STF/DEN/')) {
+      cleanStaffId = cleanStaffId.replace(/^STF\/DEN\//, 'STF/SBA/');
+    }
+    let cleanEmail = teacherData.email;
+    if (cleanEmail && cleanEmail.includes('@denmin')) {
+      cleanEmail = cleanEmail
+        .replace(/@denminacademy\.edu\.ng/g, '@sharonbrainacademy.edu.ng')
+        .replace(/@denmin\.edu/g, '@sharonbrainacademy.edu.ng');
+    }
     const id = `tch_${Date.now()}`;
-    const newTeacher: Teacher = { ...teacherData, id };
+    const newTeacher: Teacher = { ...teacherData, staffId: cleanStaffId, email: cleanEmail, id };
     setTeachers(prev => {
       const next = [newTeacher, ...prev];
       localStorage.setItem(`${STORAGE_KEY}_teachers`, JSON.stringify(next));
@@ -461,12 +594,21 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const updateTeacher = (id: string, data: Partial<Teacher>) => {
+    const cleanData = { ...data };
+    if (cleanData.staffId && cleanData.staffId.startsWith('STF/DEN/')) {
+      cleanData.staffId = cleanData.staffId.replace(/^STF\/DEN\//, 'STF/SBA/');
+    }
+    if (cleanData.email && cleanData.email.includes('@denmin')) {
+      cleanData.email = cleanData.email
+        .replace(/@denminacademy\.edu\.ng/g, '@sharonbrainacademy.edu.ng')
+        .replace(/@denmin\.edu/g, '@sharonbrainacademy.edu.ng');
+    }
     setTeachers(prev => {
-      const next = prev.map(t => (t.id === id ? { ...t, ...data } : t));
+      const next = prev.map(t => (t.id === id ? { ...t, ...cleanData } : t));
       localStorage.setItem(`${STORAGE_KEY}_teachers`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'teachers', id), data, { merge: true }).catch(console.error);
+    setDoc(doc(db, 'teachers', id), cleanData, { merge: true }).catch(console.error);
   };
 
   const deleteTeacher = (id: string) => {
@@ -480,12 +622,16 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Result Slip Actions
   const saveResultSlip = (result: ResultSlip) => {
+    const cleanAdmissionNo = result.admissionNo?.startsWith('DEN/')
+      ? result.admissionNo.replace(/^DEN\//, 'SBA/')
+      : result.admissionNo;
+    const cleanResult = { ...result, admissionNo: cleanAdmissionNo };
     setResultSlips(prev => {
-      const next = [result, ...prev.filter(r => r.id !== result.id)];
+      const next = [cleanResult, ...prev.filter(r => r.id !== cleanResult.id)];
       localStorage.setItem(`${STORAGE_KEY}_result_slips`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'result_slips', result.id), result).catch(console.error);
+    setDoc(doc(db, 'result_slips', cleanResult.id), cleanResult).catch(console.error);
   };
 
   const deleteResultSlip = (id: string) => {
@@ -548,6 +694,15 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setDoc(doc(db, 'cbt_attempts', id), newAttempt).catch(err => {
       console.warn('CBT attempt stored offline in local cache:', err);
     });
+  };
+
+  const updateCBTAttempt = (id: string, data: Partial<CBTAttempt>) => {
+    setCbtAttempts(prev => {
+      const next = prev.map(a => (a.id === id ? { ...a, ...data } : a));
+      localStorage.setItem(`${STORAGE_KEY}_cbt_attempts`, JSON.stringify(next));
+      return next;
+    });
+    setDoc(doc(db, 'cbt_attempts', id), data as any, { merge: true }).catch(console.error);
   };
 
   // Attendance Functions (Students & Staff)
@@ -620,9 +775,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const addFeePayment = (paymentData: Omit<FeePayment, 'id' | 'receiptNo'>) => {
+    const cleanAdmissionNo = paymentData.admissionNo?.startsWith('DEN/')
+      ? paymentData.admissionNo.replace(/^DEN\//, 'SBA/')
+      : paymentData.admissionNo;
     const id = `pay_${Date.now()}`;
     const newPayment: FeePayment = {
       ...paymentData,
+      admissionNo: cleanAdmissionNo,
       id,
       receiptNo: `REC/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`,
     };
@@ -742,6 +901,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         deleteCBTExam,
         cbtAttempts,
         recordCBTAttempt,
+        updateCBTAttempt,
         studentAttendance,
         markStudentAttendance,
         staffAttendance,

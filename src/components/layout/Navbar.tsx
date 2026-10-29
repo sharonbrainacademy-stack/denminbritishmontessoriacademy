@@ -31,6 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, openLog
     { id: 'about', label: 'About Us' },
     { id: 'admissions', label: 'Admissions' },
     { id: 'academics', label: 'Academics' },
+    { id: 'calendar', label: 'Calendar' },
     { id: 'resultscbt', label: 'Results & CBT Exams', highlight: true },
     { id: 'news', label: 'News & Events' },
     { id: 'contact', label: 'Contact Us' },

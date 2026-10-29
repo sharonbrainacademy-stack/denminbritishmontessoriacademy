@@ -30,12 +30,14 @@ import {
   Clock,
   Wifi,
   WifiOff,
+  Calendar,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useSchool } from '../context/SchoolContext';
 import { initialTeachers } from '../data/initialData';
-import { Student, Teacher, ResultSlip, CBTExam, CBTQuestion, FeePayment, NewsArticle, GalleryPhoto } from '../types';
+import { Student, Teacher, ResultSlip, CBTExam, CBTQuestion, CBTTheoryQuestion, CBTAttempt, CBTAssessmentType, FeePayment, NewsArticle, GalleryPhoto } from '../types';
 import { generateResultPDF, generateReceiptPDF } from '../utils/pdfHelpers';
+import { SchoolCalendar } from '../components/calendar/SchoolCalendar';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -55,6 +57,7 @@ export const AdminDashboard: React.FC = () => {
     saveCBTExam,
     deleteCBTExam,
     cbtAttempts,
+    updateCBTAttempt,
     studentAttendance,
     staffAttendance,
     isOffline,
@@ -111,13 +114,13 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const [activeSubTab, setActiveSubTab] = useState<
-    'overview' | 'students' | 'staff' | 'attendance' | 'results' | 'cbt' | 'fees' | 'cms' | 'users' | 'reports' | 'guide'
+    'overview' | 'students' | 'staff' | 'attendance' | 'results' | 'cbt' | 'calendar' | 'fees' | 'cms' | 'users' | 'reports' | 'guide'
   >('overview');
 
   // Student Form Modal State
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [newStudent, setNewStudent] = useState({
-    admissionNo: `DEN/2024/${Math.floor(100 + Math.random() * 900)}`,
+    admissionNo: `SBA/2024/${Math.floor(100 + Math.random() * 900)}`,
     fullName: '',
     gender: 'Male' as const,
     dateOfBirth: '2016-01-01',
@@ -137,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
   // Teacher Form Modal State
   const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
   const [newTeacher, setNewTeacher] = useState({
-    staffId: `STF/DEN/${Math.floor(100 + Math.random() * 900)}`,
+    staffId: `STF/SBA/${Math.floor(100 + Math.random() * 900)}`,
     fullName: '',
     email: '',
     phone: '',
@@ -164,9 +167,9 @@ export const AdminDashboard: React.FC = () => {
       .filter(Boolean);
 
     addTeacher({
-      staffId: newTeacher.staffId || `STF/DEN/${Math.floor(100 + Math.random() * 900)}`,
+      staffId: newTeacher.staffId || `STF/SBA/${Math.floor(100 + Math.random() * 900)}`,
       fullName: newTeacher.fullName,
-      email: newTeacher.email || `${newTeacher.fullName.toLowerCase().replace(/\s+/g, '.')}@denminacademy.edu.ng`,
+      email: newTeacher.email || `${newTeacher.fullName.toLowerCase().replace(/\s+/g, '.')}@sharonbrainacademy.edu.ng`,
       phone: newTeacher.phone || '+234 803 000 0000',
       role: newTeacher.role,
       assignedClass: assignedClassStr,
@@ -178,7 +181,7 @@ export const AdminDashboard: React.FC = () => {
 
     setShowAddTeacherModal(false);
     setNewTeacher({
-      staffId: `STF/DEN/${Math.floor(100 + Math.random() * 900)}`,
+      staffId: `STF/SBA/${Math.floor(100 + Math.random() * 900)}`,
       fullName: '',
       email: '',
       phone: '',
@@ -197,7 +200,7 @@ export const AdminDashboard: React.FC = () => {
     id: `res_${Date.now()}`,
     studentId: students[0]?.id || 'std_1',
     studentName: students[0]?.fullName || 'Student',
-    admissionNo: students[0]?.admissionNo || 'DEN/2024/001',
+    admissionNo: students[0]?.admissionNo || 'SBA/2024/001',
     className: 'Primary 5',
     academicSession: '2024/2025',
     term: '1st Term',
@@ -218,34 +221,57 @@ export const AdminDashboard: React.FC = () => {
     isPublished: true,
   });
 
-  // CBT Exam Modal State
+  // CBT Assessment & Grading Modal States
   const [showAddCBTModal, setShowAddCBTModal] = useState(false);
+  const [cbtAssessmentFilter, setCbtAssessmentFilter] = useState<'all' | '1st_test' | '2nd_test' | 'exam'>('all');
+  const [cbtSearchQuery, setCbtSearchQuery] = useState('');
+  const [gradingAttempt, setGradingAttempt] = useState<CBTAttempt | null>(null);
+  const [theoryScoresInput, setTheoryScoresInput] = useState<Record<string, number>>({});
+  const [theoryFeedbackInput, setTheoryFeedbackInput] = useState<Record<string, string>>({});
+  const [teacherOverallNotes, setTeacherOverallNotes] = useState<string>('');
+  const [publishToParentsToggle, setPublishToParentsToggle] = useState<boolean>(true);
+  const [cbtModalSectionTab, setCbtModalSectionTab] = useState<'obj' | 'theory'>('obj');
+
   const [newCBTExam, setNewCBTExam] = useState<CBTExam>({
     id: `cbt_${Date.now()}`,
-    title: 'New CBT Term Examination',
+    title: '1st Continuous Assessment (1st Test) - Mathematics',
+    assessmentType: '1st_test',
     className: 'Primary 5',
-    subject: 'General Knowledge',
-    durationMinutes: 15,
+    subject: 'Mathematics',
+    term: '1st Term',
+    academicSession: '2024/2025',
+    durationMinutes: 20,
     totalMarks: 20,
+    objectiveMarks: 10,
+    theoryMarks: 10,
     passingScorePercent: 50,
     shuffleQuestions: true,
     preventTabSwitch: true,
     isPublished: true,
-    instructions: 'Answer all questions carefully.',
+    instructions: 'Answer all Section A objective questions and Section B theory questions with your full workings.',
     createdAt: new Date().toISOString().split('T')[0],
     questions: [
       {
         id: 'q_1',
-        questionText: 'What is the capital city of Edo State, Nigeria?',
+        questionText: 'What is the place value of 7 in the numeral 47,825?',
         options: [
-          { id: 'a', text: 'Abuja' },
-          { id: 'b', text: 'Benin City' },
-          { id: 'c', text: 'Lagos' },
-          { id: 'd', text: 'Port Harcourt' },
+          { id: 'a', text: 'Thousands (7,000)' },
+          { id: 'b', text: 'Hundreds (700)' },
+          { id: 'c', text: 'Tens (70)' },
+          { id: 'd', text: 'Ten Thousands (70,000)' },
         ],
-        correctOptionId: 'b',
-        explanation: 'Benin City is the capital of Edo State.',
+        correctOptionId: 'a',
+        explanation: 'In 47,825, the digit 7 is in the thousands column, representing 7,000.',
         marks: 10,
+      },
+    ],
+    theoryQuestions: [
+      {
+        id: 'th_1',
+        questionText: 'Explain the difference between a prime number and a composite number. Provide two examples of each.',
+        maxMarks: 10,
+        modelAnswer: 'A prime number is a number greater than 1 with only two factors: 1 and itself (e.g. 2, 3, 5). A composite number has more than two factors (e.g. 4, 6, 8, 9).',
+        guidelines: 'Award 5 marks for correct definitions of both and 5 marks for correct examples.',
       },
     ],
   });
@@ -255,7 +281,7 @@ export const AdminDashboard: React.FC = () => {
   const [newPayment, setNewPayment] = useState({
     studentId: students[0]?.id || 'std_1',
     studentName: students[0]?.fullName || 'Eseosa Princess Igbinoba',
-    admissionNo: students[0]?.admissionNo || 'DEN/2024/001',
+    admissionNo: students[0]?.admissionNo || 'SBA/2024/001',
     className: 'Primary 5',
     term: '1st Term',
     session: '2024/2025',
@@ -295,7 +321,7 @@ export const AdminDashboard: React.FC = () => {
       data.forEach((row, idx) => {
         if (row.fullName || row.Name) {
           addStudent({
-            admissionNo: row.admissionNo || row.AdmissionNo || `DEN/2024/${100 + idx}`,
+            admissionNo: row.admissionNo || row.AdmissionNo || `SBA/2024/${100 + idx}`,
             fullName: row.fullName || row.Name,
             gender: row.gender || 'Male',
             dateOfBirth: row.dob || '2016-01-01',
@@ -368,11 +394,12 @@ export const AdminDashboard: React.FC = () => {
           { id: 'attendance', label: '4. Attendance', icon: UserCheck },
           { id: 'results', label: '5. Results Entry', icon: FileText },
           { id: 'cbt', label: '6. CBT Exams', icon: BookOpen },
-          { id: 'fees', label: '7. Fees & Receipts', icon: CreditCard },
-          { id: 'cms', label: '8. Website CMS', icon: Globe },
-          { id: 'users', label: '9. User Accounts', icon: ShieldCheck },
-          { id: 'reports', label: '10. Reports', icon: Download },
-          { id: 'guide', label: '11. Deployment Guide', icon: HelpCircle },
+          { id: 'calendar', label: '7. Calendar & Dates', icon: Calendar },
+          { id: 'fees', label: '8. Fees & Receipts', icon: CreditCard },
+          { id: 'cms', label: '9. Website CMS', icon: Globe },
+          { id: 'users', label: '10. User Accounts', icon: ShieldCheck },
+          { id: 'reports', label: '11. Reports', icon: Download },
+          { id: 'guide', label: '12. Deployment Guide', icon: HelpCircle },
         ].map(tab => {
           const IconComp = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -806,7 +833,7 @@ export const AdminDashboard: React.FC = () => {
                   id: `res_${Date.now()}`,
                   studentId: defaultStudent?.id || 'std_1',
                   studentName: defaultStudent?.fullName || 'Samuel Okon',
-                  admissionNo: defaultStudent?.admissionNo || 'DEN/2024/001',
+                  admissionNo: defaultStudent?.admissionNo || 'SBA/2024/001',
                   className: defaultStudent?.className || 'Primary 5',
                   academicSession: '2024/2025',
                   term: '1st Term',
@@ -919,76 +946,292 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {cbtExams.map(exam => (
-              <div key={exam.id} className="p-5 rounded-2xl border border-slate-200 space-y-3 bg-white hover:border-[#D4AF37] transition-colors">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded">
-                      {exam.subject} — {exam.className}
-                    </span>
-                    <h4 className="font-bold text-base text-[#0B3D27] mt-1">{exam.title}</h4>
-                  </div>
-                  <button onClick={() => deleteCBTExam(exam.id)} className="text-slate-400 hover:text-red-600" title="Delete Exam">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+          {/* Assessment Type Filter & Summary Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+              <span className="font-bold text-slate-500 mr-1 text-[11px]">Filter:</span>
+              <button
+                type="button"
+                onClick={() => setCbtAssessmentFilter('all')}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                  cbtAssessmentFilter === 'all'
+                    ? 'bg-[#0B3D27] text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                All Assessments ({cbtExams.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCbtAssessmentFilter('1st_test')}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                  cbtAssessmentFilter === '1st_test'
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                1st CA (1st Test) ({cbtExams.filter(e => e.assessmentType === '1st_test').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCbtAssessmentFilter('2nd_test')}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                  cbtAssessmentFilter === '2nd_test'
+                    ? 'bg-blue-700 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                2nd CA (2nd Test) ({cbtExams.filter(e => e.assessmentType === '2nd_test').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCbtAssessmentFilter('exam')}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                  cbtAssessmentFilter === 'exam'
+                    ? 'bg-purple-700 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                Terminal Exams ({cbtExams.filter(e => e.assessmentType === 'exam' || !e.assessmentType).length})
+              </button>
+            </div>
 
-                <div className="text-xs text-slate-600 grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl">
-                  <p>⏱️ Duration: <strong>{exam.durationMinutes} mins</strong></p>
-                  <p>❓ Questions: <strong>{exam.questions.length} items</strong></p>
-                  <p>🎯 Passing Score: <strong>{exam.passingScorePercent}%</strong></p>
-                  <p>🛡️ Anti-Cheat: <strong>{exam.preventTabSwitch ? 'Enabled' : 'Disabled'}</strong></p>
-                  <p className="col-span-2 text-[11px] text-amber-900 bg-amber-50 p-1.5 rounded border border-amber-200 font-semibold">
-                    📅 Schedule: {exam.scheduleStart ? `${exam.scheduleStart.replace('T', ' ')}` : 'Anytime'} {exam.scheduleEnd ? `to ${exam.scheduleEnd.replace('T', ' ')}` : ''}
-                  </p>
-                </div>
-              </div>
-            ))}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                value={cbtSearchQuery}
+                onChange={e => setCbtSearchQuery(e.target.value)}
+                placeholder="Search pupil or subject..."
+                className="pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-[#0B3D27] outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Configured CBT Exams Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cbtExams
+              .filter(exam => {
+                if (cbtAssessmentFilter === 'all') return true;
+                if (cbtAssessmentFilter === 'exam') return exam.assessmentType === 'exam' || !exam.assessmentType;
+                return exam.assessmentType === cbtAssessmentFilter;
+              })
+              .map(exam => {
+                const isFirstTest = exam.assessmentType === '1st_test';
+                const isSecondTest = exam.assessmentType === '2nd_test';
+                const typeLabel = isFirstTest
+                  ? '1st Continuous Assessment (1st Test)'
+                  : isSecondTest
+                  ? '2nd Continuous Assessment (2nd Test)'
+                  : 'Terminal Exam (Main Examination)';
+                const badgeColor = isFirstTest
+                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                  : isSecondTest
+                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                  : 'bg-purple-100 text-purple-900 border-purple-300';
+
+                const objCount = exam.questions?.length || 0;
+                const theoryCount = exam.theoryQuestions?.length || 0;
+
+                return (
+                  <div key={exam.id} className="p-4 rounded-2xl border border-slate-200 space-y-3 bg-white hover:border-[#D4AF37] transition-all shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeColor}`}>
+                          {typeLabel}
+                        </span>
+                        <h4 className="font-bold text-sm text-[#0B3D27] line-clamp-1">{exam.title}</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">{exam.subject} — {exam.className}</p>
+                      </div>
+                      <button onClick={() => deleteCBTExam(exam.id)} className="text-slate-400 hover:text-red-600 p-1" title="Delete Exam">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="text-[11px] text-slate-600 grid grid-cols-2 gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <p>⏱️ Duration: <strong>{exam.durationMinutes} mins</strong></p>
+                      <p>💯 Total Marks: <strong>{exam.totalMarks || (objCount * 10 + theoryCount * 10)} pts</strong></p>
+                      <p>📝 Obj: <strong>{objCount} Qs ({exam.objectiveMarks || objCount * 10} pts)</strong></p>
+                      <p>✍️ Theory: <strong>{theoryCount} Qs ({exam.theoryMarks || theoryCount * 10} pts)</strong></p>
+                      <p className="col-span-2 text-[10px] text-amber-900 bg-amber-50/80 p-1 rounded font-medium">
+                        🛡️ Anti-Cheat: {exam.preventTabSwitch ? 'Enabled' : 'Disabled'} • Passing: {exam.passingScorePercent}%
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
           {/* Student Submissions Log Table */}
           <div className="border-t border-slate-200 pt-6 space-y-4">
-            <h4 className="font-serif font-bold text-base text-[#0B3D27]">Submitted Student CBT Exam Records</h4>
-            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="font-serif font-bold text-base text-[#0B3D27]">
+                  Submitted Student Continuous Assessment & CBT Exam Records
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Includes 1st Test, 2nd Test & Terminal Exam records. Teachers can grade open-ended theory responses and publish directly to parent portal.
+                </p>
+              </div>
+              <span className="text-xs font-bold bg-[#0B3D27] text-[#D4AF37] px-3 py-1 rounded-full self-start sm:self-auto">
+                Total Submissions: {cbtAttempts.length}
+              </span>
+            </div>
+
             {cbtAttempts.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl">
-                No student exam submissions recorded yet. When pupils complete an exam in the CBT portal, their submissions and scores will appear here automatically.
+              <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                <BookOpen className="w-8 h-8 text-slate-400 mx-auto" />
+                <p className="font-bold">No student assessment submissions recorded yet.</p>
+                <p>When pupils complete tests or exams in the CBT portal, their submissions and scores will appear here automatically.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#0B3D27] text-white">
-                      <th className="p-3 font-bold">Student Name</th>
-                      <th className="p-3 font-bold">Admission No</th>
-                      <th className="p-3 font-bold">Exam Title</th>
-                      <th className="p-3 font-bold">Score</th>
-                      <th className="p-3 font-bold">Percentage</th>
-                      <th className="p-3 font-bold">Tab Violations</th>
+                      <th className="p-3 font-bold">Pupil Info</th>
+                      <th className="p-3 font-bold">Assessment Type</th>
+                      <th className="p-3 font-bold">Subject / Title</th>
+                      <th className="p-3 font-bold text-center">Obj Score</th>
+                      <th className="p-3 font-bold text-center">Theory Score</th>
+                      <th className="p-3 font-bold text-center">Total Score</th>
+                      <th className="p-3 font-bold text-center">Parent View</th>
                       <th className="p-3 font-bold text-center">Outcome</th>
-                      <th className="p-3 font-bold text-right">Date Taken</th>
+                      <th className="p-3 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {cbtAttempts.map(attempt => (
-                      <tr key={attempt.id} className="hover:bg-slate-50">
-                        <td className="p-3 font-bold text-[#0B3D27]">{attempt.studentName}</td>
-                        <td className="p-3 font-mono">{attempt.admissionNo}</td>
-                        <td className="p-3 font-semibold">{attempt.examTitle}</td>
-                        <td className="p-3 font-bold">{attempt.score} / {attempt.totalMarks}</td>
-                        <td className="p-3 font-bold text-emerald-800">{attempt.percentage.toFixed(1)}%</td>
-                        <td className="p-3 text-amber-700 font-bold">{attempt.tabSwitchCount || 0} times</td>
-                        <td className="p-3 text-center">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            attempt.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {attempt.passed ? 'PASSED' : 'FAILED'}
-                          </span>
-                        </td>
-                        <td className="p-3 text-right text-slate-500">{attempt.dateTaken}</td>
-                      </tr>
-                    ))}
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {cbtAttempts
+                      .filter(attempt => {
+                        const matchesType =
+                          cbtAssessmentFilter === 'all'
+                            ? true
+                            : cbtAssessmentFilter === 'exam'
+                            ? attempt.assessmentType === 'exam' || !attempt.assessmentType
+                            : attempt.assessmentType === cbtAssessmentFilter;
+
+                        if (!matchesType) return false;
+
+                        if (!cbtSearchQuery.trim()) return true;
+                        const query = cbtSearchQuery.toLowerCase();
+                        return (
+                          attempt.studentName.toLowerCase().includes(query) ||
+                          attempt.admissionNo.toLowerCase().includes(query) ||
+                          attempt.examTitle.toLowerCase().includes(query) ||
+                          (attempt.subject && attempt.subject.toLowerCase().includes(query))
+                        );
+                      })
+                      .map(attempt => {
+                        const isFirst = attempt.assessmentType === '1st_test';
+                        const isSecond = attempt.assessmentType === '2nd_test';
+                        const typeBadge = isFirst
+                          ? { label: '1st Test (1st CA)', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' }
+                          : isSecond
+                          ? { label: '2nd Test (2nd CA)', bg: 'bg-blue-100 text-blue-900 border-blue-300' }
+                          : { label: 'Terminal Exam', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+
+                        const hasTheory = (attempt.theoryTotalMarks ?? 0) > 0 || (attempt.theoryAnswers && Object.keys(attempt.theoryAnswers).length > 0);
+                        const isTheoryGraded = attempt.theoryGraded || false;
+                        const scoreDisp = attempt.scoreObtained ?? (attempt as any).score ?? 0;
+                        const dateDisp = attempt.submittedAt ?? (attempt as any).dateTaken ?? 'Recent';
+
+                        return (
+                          <tr key={attempt.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-3">
+                              <span className="font-bold text-[#0B3D27] block text-xs">{attempt.studentName}</span>
+                              <span className="font-mono text-[11px] text-slate-500">{attempt.admissionNo}</span>
+                            </td>
+
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${typeBadge.bg}`}>
+                                {typeBadge.label}
+                              </span>
+                            </td>
+
+                            <td className="p-3">
+                              <span className="font-semibold text-slate-800 block text-xs">{attempt.examTitle}</span>
+                              <span className="text-[10px] text-slate-500">{attempt.subject || 'CBT Assessment'}</span>
+                            </td>
+
+                            <td className="p-3 text-center font-semibold text-slate-700">
+                              {attempt.objectiveScore ?? 0} / {attempt.objectiveTotalMarks ?? 10}
+                            </td>
+
+                            <td className="p-3 text-center">
+                              {hasTheory ? (
+                                isTheoryGraded ? (
+                                  <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    {attempt.theoryScore ?? 0} / {attempt.theoryTotalMarks ?? 10}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300 animate-pulse">
+                                    Needs Grading
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-slate-400 text-[11px]">N/A</span>
+                              )}
+                            </td>
+
+                            <td className="p-3 text-center">
+                              <span className="font-bold text-xs text-[#0B3D27] block">
+                                {scoreDisp} / {attempt.totalMarks}
+                              </span>
+                              <span className="text-[10px] font-semibold text-emerald-700">
+                                {(attempt.percentage ?? 0).toFixed(1)}%
+                              </span>
+                            </td>
+
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const currentPub = attempt.publishedToParents !== false;
+                                  updateCBTAttempt(attempt.id, { publishedToParents: !currentPub });
+                                }}
+                                title="Click to toggle visibility on student & parent results portal"
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all border ${
+                                  attempt.publishedToParents !== false
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                    : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
+                                }`}
+                              >
+                                {attempt.publishedToParents !== false ? '✓ Visible to Parent' : 'Hidden from Parent'}
+                              </button>
+                            </td>
+
+                            <td className="p-3 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                attempt.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {attempt.passed ? 'PASSED' : 'FAILED'}
+                              </span>
+                            </td>
+
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {hasTheory && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setGradingAttempt(attempt);
+                                      setTheoryScoresInput(attempt.theoryScores || {});
+                                      setTheoryFeedbackInput(attempt.theoryFeedback || {});
+                                      setTeacherOverallNotes(attempt.teacherReviewNotes || '');
+                                      setPublishToParentsToggle(attempt.publishedToParents !== false);
+                                    }}
+                                    className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 shadow-sm transition-all"
+                                    title="Grade student written theory answers"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                    <span>{isTheoryGraded ? 'Review Theory' : 'Grade Theory'}</span>
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -997,7 +1240,17 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* SUB-TAB 6: FEES & PAYMENTS */}
+      {/* SUB-TAB 7: ACADEMIC CALENDAR & DATES */}
+      {activeSubTab === 'calendar' && (
+        <div className="space-y-6 animate-fade-in">
+          <SchoolCalendar
+            title="School Academic Calendar & Important Dates"
+            subtitle="Full schedule of session resumptions, continuous assessment (CBT test) weeks, terminal examinations, public holidays, and school celebrations."
+          />
+        </div>
+      )}
+
+      {/* SUB-TAB 8: FEES & PAYMENTS */}
       {activeSubTab === 'fees' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 animate-fade-in">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -1366,13 +1619,30 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setShowAddStudentModal(false)} className="px-4 py-2 text-xs border rounded">Cancel</button>
+              <button onClick={() => setShowAddStudentModal(false)} className="px-4 py-2 text-xs border rounded hover:bg-slate-50 transition-colors">Cancel</button>
               <button
                 onClick={() => {
+                  if (!newStudent.fullName.trim()) {
+                    alert('Please enter student full name before saving.');
+                    return;
+                  }
                   addStudent(newStudent);
                   setShowAddStudentModal(false);
+                  setNewStudent({
+                    admissionNo: `SBA/2024/${Math.floor(100 + Math.random() * 900)}`,
+                    fullName: '',
+                    gender: 'Male',
+                    dateOfBirth: '2016-01-01',
+                    className: 'Primary 5',
+                    parentName: '',
+                    parentPhone: '',
+                    parentEmail: '',
+                    address: 'Benin City',
+                    status: 'Active',
+                    enrollmentYear: '2024',
+                  });
                 }}
-                className="px-4 py-2 text-xs bg-[#0B3D27] text-white font-bold rounded"
+                className="px-4 py-2 text-xs bg-[#0B3D27] hover:bg-emerald-900 text-white font-bold rounded shadow transition-colors"
               >
                 Save Student
               </button>
@@ -1908,14 +2178,18 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: CREATE CBT EXAM */}
+      {/* MODAL: CREATE CBT EXAM OR CONTINUOUS ASSESSMENT TEST */}
       {showAddCBTModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 space-y-5 my-8 max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-[#D4AF37]">
             <div className="flex items-center justify-between border-b pb-3">
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#0B3D27]">Create CBT Examination</h3>
-                <p className="text-xs text-slate-500">Configure exam settings and compose questions</p>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Continuous Assessment & Exam Architect
+                </span>
+                <h3 className="font-serif font-bold text-lg text-[#0B3D27] mt-0.5">
+                  Create CBT Assessment (1st Test, 2nd Test or Terminal Exam)
+                </h3>
               </div>
               <button
                 onClick={() => setShowAddCBTModal(false)}
@@ -1925,17 +2199,31 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Exam Config Settings */}
+            {/* Assessment Config Settings */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Exam Title</label>
-                <input
-                  type="text"
-                  value={newCBTExam.title}
-                  onChange={e => setNewCBTExam({ ...newCBTExam, title: e.target.value })}
-                  className="w-full p-2 border rounded bg-white"
-                  placeholder="e.g. 1st Term Mathematics Exam"
-                />
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Assessment Type / Category</label>
+                <select
+                  value={newCBTExam.assessmentType}
+                  onChange={e => {
+                    const type = e.target.value as CBTAssessmentType;
+                    const defaultTitles: Record<CBTAssessmentType, string> = {
+                      '1st_test': `1st Continuous Assessment (1st Test) - ${newCBTExam.subject}`,
+                      '2nd_test': `2nd Continuous Assessment (2nd Test) - ${newCBTExam.subject}`,
+                      'exam': `1st Term Examination (Terminal Exam) - ${newCBTExam.subject}`,
+                    };
+                    setNewCBTExam({
+                      ...newCBTExam,
+                      assessmentType: type,
+                      title: defaultTitles[type] || newCBTExam.title,
+                    });
+                  }}
+                  className="w-full p-2 border rounded-xl bg-white font-bold text-[#0B3D27]"
+                >
+                  <option value="1st_test">1st Continuous Assessment (1st Test / 1st C.A)</option>
+                  <option value="2nd_test">2nd Continuous Assessment (2nd Test / 2nd C.A)</option>
+                  <option value="exam">Terminal Examination (Main Terminal Exam)</option>
+                </select>
               </div>
 
               <div>
@@ -1943,7 +2231,7 @@ export const AdminDashboard: React.FC = () => {
                 <select
                   value={newCBTExam.className}
                   onChange={e => setNewCBTExam({ ...newCBTExam, className: e.target.value })}
-                  className="w-full p-2 border rounded bg-white"
+                  className="w-full p-2 border rounded-xl bg-white"
                 >
                   <option value="Pre-Nursery">Pre-Nursery</option>
                   <option value="Nursery 1">Nursery 1</option>
@@ -1957,13 +2245,24 @@ export const AdminDashboard: React.FC = () => {
                 </select>
               </div>
 
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Exam / Test Title</label>
+                <input
+                  type="text"
+                  value={newCBTExam.title}
+                  onChange={e => setNewCBTExam({ ...newCBTExam, title: e.target.value })}
+                  className="w-full p-2 border rounded-xl bg-white font-semibold"
+                  placeholder="e.g. 1st Continuous Assessment - Mathematics"
+                />
+              </div>
+
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Subject</label>
                 <input
                   type="text"
                   value={newCBTExam.subject}
                   onChange={e => setNewCBTExam({ ...newCBTExam, subject: e.target.value })}
-                  className="w-full p-2 border rounded bg-white"
+                  className="w-full p-2 border rounded-xl bg-white"
                   placeholder="e.g. Mathematics"
                 />
               </div>
@@ -1973,8 +2272,8 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="number"
                   value={newCBTExam.durationMinutes}
-                  onChange={e => setNewCBTExam({ ...newCBTExam, durationMinutes: Number(e.target.value) })}
-                  className="w-full p-2 border rounded bg-white"
+                  onChange={e => setNewCBTExam({ ...newCBTExam, durationMinutes: Math.max(1, Number(e.target.value)) })}
+                  className="w-full p-2 border rounded-xl bg-white"
                   min={1}
                 />
               </div>
@@ -1985,34 +2284,13 @@ export const AdminDashboard: React.FC = () => {
                   type="number"
                   value={newCBTExam.passingScorePercent}
                   onChange={e => setNewCBTExam({ ...newCBTExam, passingScorePercent: Number(e.target.value) })}
-                  className="w-full p-2 border rounded bg-white"
+                  className="w-full p-2 border rounded-xl bg-white"
                   min={1}
                   max={100}
                 />
               </div>
 
-              <div className="col-span-1 sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/70 p-3 rounded-lg border border-amber-200 mt-1">
-                <div>
-                  <label className="block font-bold text-amber-900 mb-1">📅 Scheduled Start Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={newCBTExam.scheduleStart || ''}
-                    onChange={e => setNewCBTExam({ ...newCBTExam, scheduleStart: e.target.value })}
-                    className="w-full p-2 border rounded bg-white text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-amber-900 mb-1">⏰ Scheduled End Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={newCBTExam.scheduleEnd || ''}
-                    onChange={e => setNewCBTExam({ ...newCBTExam, scheduleEnd: e.target.value })}
-                    className="w-full p-2 border rounded bg-white text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2 col-span-1 sm:col-span-3">
+              <div className="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
                   id="tabSwitchPrevent"
@@ -2021,130 +2299,315 @@ export const AdminDashboard: React.FC = () => {
                   className="w-4 h-4 text-[#0B3D27] rounded"
                 />
                 <label htmlFor="tabSwitchPrevent" className="font-bold text-slate-800 text-xs">
-                  Enable Anti-Cheat Tab Switching Prevention
+                  Anti-Cheat Tab Switch Lock
                 </label>
               </div>
             </div>
 
-            {/* Questions Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-serif font-bold text-sm text-[#0B3D27]">
-                  Questions List ({newCBTExam.questions.length})
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextQNum = newCBTExam.questions.length + 1;
-                    const newQ = {
-                      id: `q_${Date.now()}_${nextQNum}`,
-                      questionText: `Question ${nextQNum}: `,
-                      options: [
-                        { id: 'a', text: 'Option A' },
-                        { id: 'b', text: 'Option B' },
-                        { id: 'c', text: 'Option C' },
-                        { id: 'd', text: 'Option D' },
-                      ],
-                      correctOptionId: 'a',
-                      explanation: '',
-                      marks: 10,
-                    };
-                    setNewCBTExam({
-                      ...newCBTExam,
-                      questions: [...newCBTExam.questions, newQ],
-                    });
-                  }}
-                  className="bg-emerald-100 hover:bg-emerald-200 text-[#0B3D27] font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Question</span>
-                </button>
-              </div>
+            {/* Section Switcher Tabs */}
+            <div className="flex border-b border-slate-200 gap-2">
+              <button
+                type="button"
+                onClick={() => setCbtModalSectionTab('obj')}
+                className={`py-2 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all ${
+                  cbtModalSectionTab === 'obj'
+                    ? 'border-[#0B3D27] text-[#0B3D27] bg-emerald-50 rounded-t-lg'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>Section A: Objective Questions</span>
+                <span className="bg-[#0B3D27] text-white text-[10px] px-1.5 py-0.2 rounded-full">
+                  {newCBTExam.questions.length} Qs ({newCBTExam.questions.reduce((s, q) => s + (q.marks || 10), 0)} pts)
+                </span>
+              </button>
 
+              <button
+                type="button"
+                onClick={() => setCbtModalSectionTab('theory')}
+                className={`py-2 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all ${
+                  cbtModalSectionTab === 'theory'
+                    ? 'border-[#D4AF37] text-amber-900 bg-amber-50 rounded-t-lg'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>Section B: Theory & Essay Questions</span>
+                <span className="bg-[#D4AF37] text-[#0B3D27] text-[10px] px-1.5 py-0.2 rounded-full">
+                  {(newCBTExam.theoryQuestions || []).length} Qs ({(newCBTExam.theoryQuestions || []).reduce((s, q) => s + (q.maxMarks || 10), 0)} pts)
+                </span>
+              </button>
+            </div>
+
+            {/* TAB CONTENT 1: OBJECTIVE QUESTIONS */}
+            {cbtModalSectionTab === 'obj' && (
               <div className="space-y-4">
-                {newCBTExam.questions.map((q, qIdx) => (
-                  <div key={q.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 relative">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#0B3D27]">Question #{qIdx + 1}</span>
-                      {newCBTExam.questions.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewCBTExam({
-                              ...newCBTExam,
-                              questions: newCBTExam.questions.filter((_, idx) => idx !== qIdx),
-                            });
-                          }}
-                          className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1 font-bold"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" /> Remove
-                        </button>
-                      )}
-                    </div>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-serif font-bold text-sm text-[#0B3D27]">
+                    Multiple Choice Questions ({newCBTExam.questions.length})
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextQNum = newCBTExam.questions.length + 1;
+                      const newQ = {
+                        id: `q_${Date.now()}_${nextQNum}`,
+                        questionText: `Question ${nextQNum}: `,
+                        options: [
+                          { id: 'a', text: 'Option A' },
+                          { id: 'b', text: 'Option B' },
+                          { id: 'c', text: 'Option C' },
+                          { id: 'd', text: 'Option D' },
+                        ],
+                        correctOptionId: 'a',
+                        explanation: '',
+                        marks: 10,
+                      };
+                      setNewCBTExam({
+                        ...newCBTExam,
+                        questions: [...newCBTExam.questions, newQ],
+                      });
+                    }}
+                    className="bg-emerald-100 hover:bg-emerald-200 text-[#0B3D27] font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Objective Question</span>
+                  </button>
+                </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Question Statement</label>
-                      <input
-                        type="text"
-                        value={q.questionText}
-                        onChange={e => {
-                          const updatedQs = [...newCBTExam.questions];
-                          updatedQs[qIdx].questionText = e.target.value;
-                          setNewCBTExam({ ...newCBTExam, questions: updatedQs });
-                        }}
-                        className="w-full p-2 border rounded text-xs bg-white"
-                        placeholder="Type question here..."
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {q.options.map((opt, optIdx) => (
-                        <div key={opt.id} className="flex items-center gap-2 bg-white p-1.5 rounded border">
-                          <input
-                            type="radio"
-                            name={`correct_${q.id}`}
-                            checked={q.correctOptionId === opt.id}
-                            onChange={() => {
-                              const updatedQs = [...newCBTExam.questions];
-                              updatedQs[qIdx].correctOptionId = opt.id;
-                              setNewCBTExam({ ...newCBTExam, questions: updatedQs });
+                <div className="space-y-4">
+                  {newCBTExam.questions.map((q, qIdx) => (
+                    <div key={q.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 relative">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-[#0B3D27]">Question #{qIdx + 1}</span>
+                        {newCBTExam.questions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewCBTExam({
+                                ...newCBTExam,
+                                questions: newCBTExam.questions.filter((_, idx) => idx !== qIdx),
+                              });
                             }}
-                            className="text-[#0B3D27]"
-                          />
-                          <span className="font-bold uppercase text-slate-500 w-4">{opt.id}:</span>
+                            className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1 font-bold"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Question Statement</label>
                           <input
                             type="text"
-                            value={opt.text}
+                            value={q.questionText}
                             onChange={e => {
                               const updatedQs = [...newCBTExam.questions];
-                              updatedQs[qIdx].options[optIdx].text = e.target.value;
+                              updatedQs[qIdx].questionText = e.target.value;
                               setNewCBTExam({ ...newCBTExam, questions: updatedQs });
                             }}
-                            className="w-full p-1 text-xs border-b border-dashed focus:outline-none"
-                            placeholder={`Option ${opt.id.toUpperCase()}`}
+                            className="w-full p-2 border rounded-xl text-xs bg-white"
+                            placeholder="Type question here..."
                           />
                         </div>
-                      ))}
-                    </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Marks</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={q.marks || 10}
+                            onChange={e => {
+                              const updatedQs = [...newCBTExam.questions];
+                              updatedQs[qIdx].marks = Number(e.target.value) || 10;
+                              setNewCBTExam({ ...newCBTExam, questions: updatedQs });
+                            }}
+                            className="w-full p-2 border rounded-xl text-xs bg-white text-center font-bold"
+                          />
+                        </div>
+                      </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Correct Answer Explanation (Optional)</label>
-                      <input
-                        type="text"
-                        value={q.explanation || ''}
-                        onChange={e => {
-                          const updatedQs = [...newCBTExam.questions];
-                          updatedQs[qIdx].explanation = e.target.value;
-                          setNewCBTExam({ ...newCBTExam, questions: updatedQs });
-                        }}
-                        className="w-full p-1.5 border rounded text-xs bg-white"
-                        placeholder="Explanation shown to student after exam..."
-                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {q.options.map((opt, optIdx) => (
+                          <div key={opt.id} className="flex items-center gap-2 bg-white p-1.5 rounded-xl border">
+                            <input
+                              type="radio"
+                              name={`correct_${q.id}`}
+                              checked={q.correctOptionId === opt.id}
+                              onChange={() => {
+                                const updatedQs = [...newCBTExam.questions];
+                                updatedQs[qIdx].correctOptionId = opt.id;
+                                setNewCBTExam({ ...newCBTExam, questions: updatedQs });
+                              }}
+                              className="text-[#0B3D27]"
+                            />
+                            <span className="font-bold uppercase text-slate-500 w-4">{opt.id}:</span>
+                            <input
+                              type="text"
+                              value={opt.text}
+                              onChange={e => {
+                                const updatedQs = [...newCBTExam.questions];
+                                updatedQs[qIdx].options[optIdx].text = e.target.value;
+                                setNewCBTExam({ ...newCBTExam, questions: updatedQs });
+                              }}
+                              className="w-full p-1 text-xs border-b border-dashed focus:outline-none"
+                              placeholder={`Option ${opt.id.toUpperCase()}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Correct Answer Explanation (Optional)</label>
+                        <input
+                          type="text"
+                          value={q.explanation || ''}
+                          onChange={e => {
+                            const updatedQs = [...newCBTExam.questions];
+                            updatedQs[qIdx].explanation = e.target.value;
+                            setNewCBTExam({ ...newCBTExam, questions: updatedQs });
+                          }}
+                          className="w-full p-1.5 border rounded-xl text-xs bg-white"
+                          placeholder="Explanation shown to student after exam..."
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* TAB CONTENT 2: THEORY & ESSAY QUESTIONS */}
+            {cbtModalSectionTab === 'theory' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-serif font-bold text-sm text-[#0B3D27]">
+                      Section B: Theory Questions ({(newCBTExam.theoryQuestions || []).length})
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Pupils will type their workings and answers in an open-ended editor during the CBT test.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextTNum = (newCBTExam.theoryQuestions || []).length + 1;
+                      const newT: CBTTheoryQuestion = {
+                        id: `th_${Date.now()}_${nextTNum}`,
+                        questionText: `Theory Question ${nextTNum}: `,
+                        maxMarks: 10,
+                        modelAnswer: '',
+                        guidelines: '',
+                      };
+                      setNewCBTExam({
+                        ...newCBTExam,
+                        theoryQuestions: [...(newCBTExam.theoryQuestions || []), newT],
+                      });
+                    }}
+                    className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 border border-amber-300"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Theory Question</span>
+                  </button>
+                </div>
+
+                {(newCBTExam.theoryQuestions || []).length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-500 bg-amber-50/50 rounded-xl border border-amber-200">
+                    No theory questions added yet. Click <strong>"Add Theory Question"</strong> to permit an open-ended essay/working section for this assessment.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {(newCBTExam.theoryQuestions || []).map((tq, tIdx) => (
+                      <div key={tq.id} className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 space-y-3 relative">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-amber-900">Theory Question #{tIdx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (newCBTExam.theoryQuestions || []).filter((_, idx) => idx !== tIdx);
+                              setNewCBTExam({ ...newCBTExam, theoryQuestions: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1 font-bold"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                          <div className="sm:col-span-3">
+                            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                              Question Text / Mathematical Problem
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={tq.questionText}
+                              onChange={e => {
+                                const updated = [...(newCBTExam.theoryQuestions || [])];
+                                updated[tIdx].questionText = e.target.value;
+                                setNewCBTExam({ ...newCBTExam, theoryQuestions: updated });
+                              }}
+                              className="w-full p-2 border rounded-xl text-xs bg-white"
+                              placeholder="Type the full theory question or problem statement..."
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-700 mb-1">Max Marks</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={tq.maxMarks}
+                              onChange={e => {
+                                const updated = [...(newCBTExam.theoryQuestions || [])];
+                                updated[tIdx].maxMarks = Math.max(1, Number(e.target.value) || 10);
+                                setNewCBTExam({ ...newCBTExam, theoryQuestions: updated });
+                              }}
+                              className="w-full p-2 border rounded-xl text-xs bg-white font-bold text-center"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Model Answer / Solution Guide (for teacher reference during grading)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={tq.modelAnswer || ''}
+                            onChange={e => {
+                              const updated = [...(newCBTExam.theoryQuestions || [])];
+                              updated[tIdx].modelAnswer = e.target.value;
+                              setNewCBTExam({ ...newCBTExam, theoryQuestions: updated });
+                            }}
+                            className="w-full p-2 border rounded-xl text-xs bg-white"
+                            placeholder="Enter expected answer or marking steps..."
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Total Marks Preview Bar */}
+            {(() => {
+              const objMarks = newCBTExam.questions.reduce((sum, q) => sum + (q.marks || 10), 0);
+              const theoryMarks = (newCBTExam.theoryQuestions || []).reduce((sum, q) => sum + (q.maxMarks || 10), 0);
+              const total = objMarks + theoryMarks;
+              return (
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs">
+                  <div>
+                    <span>Section A (Obj): <strong>{objMarks} pts</strong></span>
+                    <span className="mx-2">•</span>
+                    <span>Section B (Theory): <strong>{theoryMarks} pts</strong></span>
+                  </div>
+                  <div>
+                    Grand Total Assessment Score: <strong className="text-[#0B3D27] text-sm">{total} Marks</strong>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="flex justify-end gap-3 pt-3 border-t">
               <button
@@ -2157,16 +2620,226 @@ export const AdminDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
+                  const objMarks = newCBTExam.questions.reduce((sum, q) => sum + (q.marks || 10), 0);
+                  const theoryMarks = (newCBTExam.theoryQuestions || []).reduce((sum, q) => sum + (q.maxMarks || 10), 0);
+                  const total = objMarks + theoryMarks;
+
                   saveCBTExam({
                     ...newCBTExam,
                     id: `cbt_${Date.now()}`,
-                    totalMarks: newCBTExam.questions.length * 10,
+                    objectiveMarks: objMarks,
+                    theoryMarks: theoryMarks,
+                    totalMarks: total,
                   });
                   setShowAddCBTModal(false);
+                  alert(`Assessment "${newCBTExam.title}" configured and published successfully!`);
                 }}
                 className="px-5 py-2 text-xs bg-[#0B3D27] hover:bg-emerald-900 text-[#D4AF37] font-bold rounded-xl shadow"
               >
-                Save & Publish CBT Exam
+                Save & Publish Assessment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TEACHER THEORY GRADING & MARKING */}
+      {gradingAttempt && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border-2 border-[#D4AF37] max-h-[90vh] overflow-y-auto my-auto">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Teacher Scoring & Grading Panel
+                </span>
+                <h3 className="text-xl font-bold font-serif text-[#0B3D27] mt-1">
+                  Grade Theory Section: {gradingAttempt.studentName}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {gradingAttempt.examTitle} ({gradingAttempt.admissionNo})
+                </p>
+              </div>
+              <button
+                onClick={() => setGradingAttempt(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Assessment Score Snapshot */}
+            <div className="grid grid-cols-3 gap-3 p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-center">
+              <div>
+                <span className="text-slate-500 block text-[10px]">Section A (Objective)</span>
+                <span className="font-bold text-[#0B3D27] text-sm">
+                  {gradingAttempt.objectiveScore} / {gradingAttempt.objectiveTotalMarks}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 block text-[10px]">Section B (Theory Max)</span>
+                <span className="font-bold text-amber-800 text-sm">
+                  {gradingAttempt.theoryTotalMarks} Marks
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 block text-[10px]">Tab Switch Violations</span>
+                <span className="font-bold text-slate-800 text-sm">
+                  {gradingAttempt.tabSwitchCount || 0} times
+                </span>
+              </div>
+            </div>
+
+            {/* Questions to Grade */}
+            {(() => {
+              const exam = cbtExams.find(e => e.id === gradingAttempt.examId);
+              const theoryQuestions = exam?.theoryQuestions || [
+                {
+                  id: 'th_1',
+                  questionText: 'Theory Question 1',
+                  maxMarks: 10,
+                  modelAnswer: 'Model answer reference',
+                },
+              ];
+
+              return (
+                <div className="space-y-5">
+                  {theoryQuestions.map((tq, idx) => {
+                    const studentAnswer = (gradingAttempt.theoryAnswers || {})[tq.id] || 'No written response submitted.';
+                    const currentScore = theoryScoresInput[tq.id] ?? 0;
+                    const currentFeedback = theoryFeedbackInput[tq.id] || '';
+
+                    return (
+                      <div key={tq.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                          <span className="font-bold text-xs text-[#0B3D27]">
+                            Question #{idx + 1} ({tq.maxMarks} Marks Max)
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500">
+                            Scored: <strong className="text-emerald-800">{currentScore}</strong> / {tq.maxMarks}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-800 font-semibold">{tq.questionText}</p>
+
+                        {tq.modelAnswer && (
+                          <div className="p-2 bg-blue-50/70 rounded-lg text-[11px] text-blue-900 border border-blue-200">
+                            <strong>Marking Guide:</strong> {tq.modelAnswer}
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                            Pupil's Written Answer / Solution
+                          </label>
+                          <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs font-mono text-slate-800 whitespace-pre-wrap">
+                            {studentAnswer}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                          <div>
+                            <label className="block text-xs font-bold text-emerald-900 mb-1">
+                              Marks Awarded (Max {tq.maxMarks})
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={tq.maxMarks}
+                              value={currentScore}
+                              onChange={e => {
+                                const val = Math.min(tq.maxMarks, Math.max(0, Number(e.target.value) || 0));
+                                setTheoryScoresInput({ ...theoryScoresInput, [tq.id]: val });
+                              }}
+                              className="w-full p-2 border border-emerald-300 rounded-xl bg-white text-center font-bold text-[#0B3D27]"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                              Specific Feedback / Corrections to Pupil
+                            </label>
+                            <input
+                              type="text"
+                              value={currentFeedback}
+                              onChange={e => setTheoryFeedbackInput({ ...theoryFeedbackInput, [tq.id]: e.target.value })}
+                              placeholder="e.g. Excellent explanation of factors, well done!"
+                              className="w-full p-2 border border-slate-300 rounded-xl bg-white text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* General Educator Remark */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                General Educator Summary Remark (Shown on Pupil & Parent Portal)
+              </label>
+              <textarea
+                rows={2}
+                value={teacherOverallNotes}
+                onChange={e => setTeacherOverallNotes(e.target.value)}
+                placeholder="e.g. Good mastery demonstrated. Workings were neatly presented."
+                className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50"
+              />
+            </div>
+
+            {/* Publish Toggle */}
+            <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+              <input
+                type="checkbox"
+                id="publishToParents"
+                checked={publishToParentsToggle}
+                onChange={e => setPublishToParentsToggle(e.target.checked)}
+                className="w-4 h-4 text-[#0B3D27] rounded"
+              />
+              <label htmlFor="publishToParents" className="text-xs font-bold text-slate-800 cursor-pointer">
+                Publish this graded assessment to Parent & Student portal immediately (accessible before terminal result slip)
+              </label>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-3 border-t">
+              <button
+                type="button"
+                onClick={() => setGradingAttempt(null)}
+                className="px-4 py-2 text-xs border rounded-xl text-slate-600 hover:bg-slate-50 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const exam = cbtExams.find(e => e.id === gradingAttempt.examId);
+                  const totalTheory = Object.values(theoryScoresInput).reduce<number>((sum, s) => sum + (Number(s) || 0), 0);
+                  const newScoreObtained = (gradingAttempt.objectiveScore || 0) + totalTheory;
+                  const totalMarks = gradingAttempt.totalMarks || ((gradingAttempt.objectiveTotalMarks || 10) + (gradingAttempt.theoryTotalMarks || 10));
+                  const percentage = totalMarks > 0 ? (newScoreObtained / totalMarks) * 100 : 0;
+                  const passScorePercent = exam?.passingScorePercent || 50;
+                  const passed = percentage >= passScorePercent;
+
+                  updateCBTAttempt(gradingAttempt.id, {
+                    theoryScores: theoryScoresInput,
+                    theoryFeedback: theoryFeedbackInput,
+                    theoryScore: totalTheory,
+                    scoreObtained: newScoreObtained,
+                    percentage,
+                    passed,
+                    theoryGraded: true,
+                    teacherReviewNotes: teacherOverallNotes,
+                    publishedToParents: publishToParentsToggle,
+                  });
+
+                  setGradingAttempt(null);
+                  alert(`Theory assessment successfully graded! Total score for ${gradingAttempt.studentName}: ${newScoreObtained}/${totalMarks} (${percentage.toFixed(1)}%).`);
+                }}
+                className="px-5 py-2 text-xs bg-[#0B3D27] hover:bg-emerald-900 text-[#D4AF37] font-bold rounded-xl shadow-md"
+              >
+                Save Grading & Update Record
               </button>
             </div>
           </div>
@@ -2268,7 +2941,7 @@ export const AdminDashboard: React.FC = () => {
                     required
                     value={newTeacher.staffId}
                     onChange={e => setNewTeacher({ ...newTeacher, staffId: e.target.value })}
-                    placeholder="e.g. STF/DEN/025"
+                    placeholder="e.g. STF/SBA/025"
                     className="w-full p-3 border border-slate-300 rounded-xl font-mono uppercase outline-none focus:ring-2 focus:ring-[#0B3D27]"
                   />
                 </div>
@@ -2279,7 +2952,7 @@ export const AdminDashboard: React.FC = () => {
                     type="email"
                     value={newTeacher.email}
                     onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })}
-                    placeholder="e.g. david.o@denminacademy.edu.ng"
+                    placeholder="e.g. david.o@sharonbrainacademy.edu.ng"
                     className="w-full p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-[#0B3D27]"
                   />
                 </div>

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { StudentAttendanceRecord, StaffAttendanceRecord, TeachingMaterial } from '../types';
+import { SchoolCalendar } from '../components/calendar/SchoolCalendar';
 
 export const StaffPortalPage: React.FC = () => {
   const {
@@ -46,7 +47,7 @@ export const StaffPortalPage: React.FC = () => {
     isOffline,
   } = useSchool();
 
-  const [activeTab, setActiveTab] = useState<'scores' | 'cbt' | 'lessons' | 'pupil_attendance' | 'staff_attendance' | 'notices'>('scores');
+  const [activeTab, setActiveTab] = useState<'scores' | 'cbt' | 'lessons' | 'pupil_attendance' | 'staff_attendance' | 'notices' | 'calendar'>('scores');
 
   // Find logged-in teacher details or fallback to primary teacher
   const loggedInTeacher = teachers.find(t => t.email === currentUser?.email) || teachers[0];
@@ -209,7 +210,7 @@ export const StaffPortalPage: React.FC = () => {
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     markStaffAttendance({
       date: attendanceDate,
-      staffId: loggedInTeacher?.staffId || 'STF/DEN/012',
+      staffId: loggedInTeacher?.staffId || 'STF/SBA/012',
       staffName: loggedInTeacher?.fullName || 'Staff Member',
       role: loggedInTeacher?.role || 'Educator',
       status,
@@ -314,7 +315,7 @@ export const StaffPortalPage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-emerald-200 font-semibold">
-              {loggedInTeacher?.role || 'Senior Primary Educator'} • Staff ID: <strong className="text-white font-mono">{loggedInTeacher?.staffId || 'STF/DEN/012'}</strong>
+              {loggedInTeacher?.role || 'Senior Primary Educator'} • Staff ID: <strong className="text-white font-mono">{loggedInTeacher?.staffId || 'STF/SBA/012'}</strong>
             </p>
             <p className="text-xs text-emerald-100 flex flex-wrap items-center gap-1.5 pt-0.5">
               <span>Assigned Class:</span>
@@ -346,6 +347,7 @@ export const StaffPortalPage: React.FC = () => {
           { id: 'pupil_attendance', label: '4. Pupil Daily Attendance', icon: UserCheck },
           { id: 'staff_attendance', label: '5. Staff Clock-In / Register', icon: Clock },
           { id: 'notices', label: '6. Directives', icon: Bell },
+          { id: 'calendar', label: '7. Academic Calendar', icon: Calendar },
         ].map(tab => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -869,6 +871,16 @@ export const StaffPortalPage: React.FC = () => {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB 7: ACADEMIC CALENDAR & DATES */}
+      {activeTab === 'calendar' && (
+        <div className="space-y-6 animate-fade-in">
+          <SchoolCalendar
+            title="Educator & Staff Academic Timetable"
+            subtitle="Important academic session dates, continuous assessment submission deadlines, exam periods, and holiday breaks."
+          />
         </div>
       )}
 

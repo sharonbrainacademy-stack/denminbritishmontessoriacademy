@@ -7,15 +7,13 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
-  CreditCard,
   Printer,
   Sparkles,
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
-import { generateReceiptPDF } from '../utils/pdfHelpers';
 
 export const AdmissionsPage: React.FC = () => {
-  const { schoolInfo, feeStructures, submitAdmissionApp } = useSchool();
+  const { schoolInfo, submitAdmissionApp } = useSchool();
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -89,7 +87,7 @@ export const AdmissionsPage: React.FC = () => {
           Admissions & Enrollment
         </h1>
         <p className="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto leading-relaxed">
-          Discover our simple 4-step enrollment process, transparent fee schedule, and online application portal.
+          Discover our simple 4-step enrollment process, entry requirements, and online application portal.
         </p>
       </div>
 
@@ -109,7 +107,7 @@ export const AdmissionsPage: React.FC = () => {
             { step: '01', title: 'Submit Application', desc: 'Fill out the online application form below or visit our admin office at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City.' },
             { step: '02', title: 'Interactive Readiness Test', desc: 'A friendly Montessori assessment designed to gauge your child’s cognitive and social development level.' },
             { step: '03', title: 'Admission Offer', desc: 'Successful candidates receive an official admission offer letter along with parent orientation guidelines.' },
-            { step: '04', title: 'Registration & Resumption', desc: 'Complete fee payment, collect uniform & learning materials, and welcome your child to class!' },
+            { step: '04', title: 'Registration & Resumption', desc: 'Complete admission confirmation, collect uniform & learning materials, and welcome your child to class!' },
           ].map((s, idx) => (
             <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
               <span className="text-4xl font-bold font-serif text-[#D4AF37]/30 absolute top-2 right-4">
@@ -123,75 +121,50 @@ export const AdmissionsPage: React.FC = () => {
       </div>
 
       {/* Entry Requirements & Downloads */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Entry Requirements Box */}
-        <div className="lg:col-span-6 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h3 className="text-xl font-bold font-serif text-[#0B3D27] flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
-            <span>Entry Requirements by Level</span>
-          </h3>
-
-          <div className="space-y-4 text-xs text-slate-700">
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-              <h4 className="font-bold text-[#0B3D27] text-sm">Pre-Nursery (Ages 1 - 3 yrs)</h4>
-              <p>Toilet readiness encouragement, copy of child’s birth certificate, immunisation record, 2 passport photographs.</p>
-            </div>
-
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
-              <h4 className="font-bold text-[#0B3D27] text-sm">Nursery 1 - 3 (Ages 3 - 5 yrs)</h4>
-              <p>Basic language readiness, birth certificate copy, 2 passport photographs, previous school report if applicable.</p>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <h4 className="font-bold text-[#0B3D27] text-sm">Primary 1 - 6 (Ages 5+ yrs)</h4>
-              <p>Written entrance assessment in Mathematics and English, previous academic transfer result, 2 passport photographs.</p>
-            </div>
+      <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-sm space-y-6 max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
+              Enrollment Guidelines
+            </span>
+            <h3 className="text-xl md:text-2xl font-bold font-serif text-[#0B3D27] flex items-center gap-2 mt-1">
+              <CheckCircle className="w-6 h-6 text-[#D4AF37]" />
+              <span>Entry Requirements by Level</span>
+            </h3>
           </div>
-
           <button
             onClick={handleDownloadFormPDF}
-            className="w-full py-3 bg-[#0B3D27] hover:bg-emerald-900 text-[#D4AF37] font-bold text-xs rounded-xl transition-all shadow flex items-center justify-center gap-2"
+            className="py-3 px-5 bg-[#0B3D27] hover:bg-emerald-900 text-[#D4AF37] font-bold text-xs rounded-xl transition-all shadow flex items-center justify-center gap-2 shrink-0"
           >
             <Download className="w-4 h-4" />
             <span>Print Blank Admission Form (PDF)</span>
           </button>
         </div>
 
-        {/* Fees Structure Table */}
-        <div className="lg:col-span-6 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold font-serif text-[#0B3D27] flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-[#D4AF37]" />
-              <span>School Fees Structure (2024/2025)</span>
-            </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-700">
+          <div className="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-100 space-y-2">
+            <div className="inline-block px-2.5 py-1 bg-[#0B3D27] text-white rounded-md text-[10px] font-bold uppercase tracking-wider">
+              Early Years
+            </div>
+            <h4 className="font-bold text-[#0B3D27] text-base font-serif">Pre-Nursery (Ages 1 - 3 yrs)</h4>
+            <p className="leading-relaxed text-slate-600">Toilet readiness encouragement, copy of child’s birth certificate, immunisation record, and 2 recent passport photographs.</p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#0B3D27] text-white">
-                  <th className="p-2.5 rounded-tl-lg font-bold">Class Level</th>
-                  <th className="p-2.5 font-bold">Tuition</th>
-                  <th className="p-2.5 font-bold">Materials/ICT</th>
-                  <th className="p-2.5 rounded-tr-lg font-bold">Total / Term</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {feeStructures.map(f => (
-                  <tr key={f.id} className="hover:bg-slate-50">
-                    <td className="p-2.5 font-bold text-[#0B3D27]">{f.className}</td>
-                    <td className="p-2.5">₦{f.tuition.toLocaleString()}</td>
-                    <td className="p-2.5">₦{(f.learningMaterials + f.ictAndCbtLevy).toLocaleString()}</td>
-                    <td className="p-2.5 font-bold text-emerald-800">₦{f.totalFee.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-5 bg-amber-50/70 rounded-2xl border border-amber-100 space-y-2">
+            <div className="inline-block px-2.5 py-1 bg-amber-700 text-white rounded-md text-[10px] font-bold uppercase tracking-wider">
+              Foundation
+            </div>
+            <h4 className="font-bold text-[#0B3D27] text-base font-serif">Nursery 1 - 3 (Ages 3 - 5 yrs)</h4>
+            <p className="leading-relaxed text-slate-600">Basic language and cognitive readiness, birth certificate copy, 2 recent passport photographs, and previous school report if applicable.</p>
           </div>
 
-          <p className="text-[11px] text-slate-500 italic">
-            * Fees cover tuition, Montessori sensory materials, computer/CBT access, and extracurricular sports. Uniforms and textbooks sold at school bookstore.
-          </p>
+          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div className="inline-block px-2.5 py-1 bg-slate-700 text-white rounded-md text-[10px] font-bold uppercase tracking-wider">
+              Primary Level
+            </div>
+            <h4 className="font-bold text-[#0B3D27] text-base font-serif">Primary 1 - 6 (Ages 5+ yrs)</h4>
+            <p className="leading-relaxed text-slate-600">Interactive entrance assessment in Mathematics and English, previous academic transfer report slip, and 2 recent passport photographs.</p>
+          </div>
         </div>
       </div>
 

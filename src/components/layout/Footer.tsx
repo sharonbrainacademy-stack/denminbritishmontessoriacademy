@@ -75,6 +75,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, openLoginModal }) 
                 { id: 'about', label: 'About Our Philosophy' },
                 { id: 'admissions', label: 'Admissions & Entry' },
                 { id: 'academics', label: 'Montessori Curriculum' },
+                { id: 'calendar', label: 'Academic Calendar & Dates' },
                 { id: 'resultscbt', label: 'Student Results & CBT Portal' },
                 { id: 'news', label: 'News & Announcements' },
                 { id: 'contact', label: 'Contact Us & Location' },
