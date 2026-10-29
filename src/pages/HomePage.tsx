@@ -2,199 +2,123 @@ import React from 'react';
 import {
   GraduationCap,
   Award,
-  ShieldCheck,
   BookOpen,
   Users,
+  ShieldCheck,
   CheckCircle2,
   ArrowRight,
   Sparkles,
-  PhoneCall,
-  FileText,
-  Star,
-  Building2,
-  Heart,
-  Globe,
-  HelpCircle,
+  Laptop,
+  FileCheck,
   Calendar,
+  PhoneCall,
+  MapPin,
+  Clock,
+  Heart
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { SchoolCalendar } from '../components/calendar/SchoolCalendar';
 
 interface HomePageProps {
-  setActiveTab: (tab: string) => void;
-  openLoginModal: () => void;
+  onNavigate: (page: string) => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal }) => {
-  const { schoolInfo, newsArticles, galleryPhotos } = useSchool();
-
-  const whyChooseUsPoints = [
-    {
-      title: 'British Montessori Methodology',
-      desc: 'Hands-on sensory learning materials combined with British Early Years Foundation Stage (EYFS) and National Curriculum standards.',
-      icon: GraduationCap,
-    },
-    {
-      title: 'Certified & Passionate Educators',
-      desc: 'UK Montessori-certified leads and TRCN-registered subject specialists dedicated to each child’s intellectual and moral growth.',
-      icon: Award,
-    },
-    {
-      title: 'Safe, Serene & Secure Campus',
-      desc: '24/7 CCTV-monitored, gated premises with child-safe padded play facilities right opposite UNIBEN Main Gate, Ugbowo, Benin City.',
-      icon: ShieldCheck,
-    },
-    {
-      title: 'British Standards + Nigerian Values',
-      desc: 'Fostering international academic competitiveness while instilling deep respect, Edo/Nigerian cultural identity, and moral integrity.',
-      icon: Heart,
-    },
-    {
-      title: 'Digital Literacy & Online CBT Exams',
-      desc: 'Air-conditioned ICT centers, early robotics, computer studies, and a online CBT exam & result portal.',
-      icon: Globe,
-    },
-    {
-      title: 'Holistic Character & Co-Curricular',
-      desc: 'Active clubs including Chess, Taekwondo, Diction & Public Speaking, Young Farmers, Choir, and STEAM Innovation.',
-      icon: Sparkles,
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Engr. & Mrs. Victor Igbinoba',
-      parentOf: 'Eseosa (Primary 5) & Nosa (Nursery 2)',
-      quote: 'Sharon Brain Academy has been a blessing to our family. The balance between academic rigor and moral values transformed our daughter Eseosa into a top-scoring, confident student!',
-      rating: 5,
-    },
-    {
-      name: 'Dr. Osas Oviawe',
-      parentOf: 'Osasumwen Jr. (Primary 5)',
-      quote: 'Living here in Ugbowo, proximity and quality were paramount. Sharon Brain Academy exceeds expectations—the new CBT exam portal and instant PDF result slips make parent tracking effortless.',
-      rating: 5,
-    },
-    {
-      name: 'Alhaji & Hajia Ibrahim Bello',
-      parentOf: 'Aisha (Primary 6)',
-      quote: 'The emphasis on discipline, public speaking diction, and moral character is unmatched in Benin City. We are proud Sharon Brain parents!',
-      rating: 5,
-    },
-  ];
+export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+  const { schoolInfo, newsArticles } = useSchool();
 
   return (
     <div className="space-y-16 pb-16">
       {/* Hero Section */}
-      <section className="relative bg-[#0B3D27] text-white overflow-hidden py-16 lg:py-24 border-b-4 border-[#D4AF37]">
-        {/* Background Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-950 via-slate-900 to-slate-900 text-white pt-16 pb-24">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-emerald-500/10 blur-3xl pointer-events-none rounded-full" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-[#D4AF37]/20 border border-[#D4AF37] px-3.5 py-1.5 rounded-full text-xs font-bold text-[#D4AF37]">
-                <Award className="w-4 h-4" />
-                <span>Premier Montessori Education in Benin City, Nigeria</span>
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <span>Premier Citadel of Learning in Ugbowo, Benin City</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-bold font-serif text-[#F9F6EF] leading-tight">
-                {schoolInfo.name}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                Empowering Curious Minds for a{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300">
+                  Glorious Tomorrow
+                </span>
               </h1>
 
-              <p className="text-lg md:text-xl text-[#D4AF37] font-serif italic">
-                "{schoolInfo.motto}"
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+                {schoolInfo.tagline}. At <span className="text-white font-bold">{schoolInfo.name}</span>,
+                we unite academic rigor, high moral character, and innovative Computer-Based Testing (CBT)
+                to unlock every child's full potential.
               </p>
 
-              <p className="text-sm md:text-base text-emerald-100 max-w-2xl leading-relaxed">
-                {schoolInfo.tagline}. Located conveniently at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City, Edo State.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <button
-                  onClick={() => setActiveTab('admissions')}
-                  className="bg-[#D4AF37] hover:bg-amber-400 text-[#0B3D27] font-bold px-7 py-3.5 rounded-xl text-base shadow-lg hover:shadow-xl transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
+                  onClick={() => onNavigate('admissions')}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-700/30 transition flex items-center gap-2"
                 >
-                  <Award className="w-5 h-5" />
-                  <span>Enroll Your Child Now</span>
-                  <ArrowRight className="w-4 h-4" />
+                  Apply for Admission <ArrowRight className="w-4 h-4" />
                 </button>
-
                 <button
-                  onClick={() => setActiveTab('resultscbt')}
-                  className="bg-emerald-900/90 hover:bg-emerald-800 text-white font-bold px-6 py-3.5 rounded-xl text-base border border-[#D4AF37]/50 shadow-md transition-all flex items-center gap-2"
+                  onClick={() => onNavigate('results-cbt')}
+                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-xl border border-slate-700 transition flex items-center gap-2"
                 >
-                  <BookOpen className="w-5 h-5 text-[#D4AF37]" />
-                  <span>Access CBT & Results Portal</span>
+                  <Laptop className="w-4 h-4 text-emerald-400" /> Online CBT & Results
                 </button>
-
-                <button
-                  onClick={openLoginModal}
-                  className="bg-white/10 hover:bg-white/20 text-emerald-100 font-semibold px-5 py-3.5 rounded-xl text-sm border border-white/20 transition-colors"
-                >
-                  Staff / Admin Login
-                </button>
-
-                <a
-                  href="#school-calendar"
-                  className="bg-emerald-950/80 hover:bg-emerald-900 text-[#D4AF37] font-semibold px-5 py-3.5 rounded-xl text-sm border border-[#D4AF37]/40 transition-all flex items-center gap-2 shadow"
-                >
-                  <Calendar className="w-4 h-4" />
-                  <span>Academic Calendar & Dates</span>
-                </a>
               </div>
 
-              {/* Quick Info Badges */}
-              <div className="pt-6 border-t border-emerald-800/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-emerald-200">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Pre-Nursery, Nursery & Primary</span>
+              {/* Highlights badge row */}
+              <div className="pt-6 grid grid-cols-3 gap-4 border-t border-slate-800 text-left">
+                <div>
+                  <span className="block text-2xl font-black text-emerald-400">{schoolInfo.yearsOfExcellence}+</span>
+                  <span className="text-xs text-slate-400">Years of Quality Education</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
-                  <span>MCI UK Montessori Certified</span>
+                <div>
+                  <span className="block text-2xl font-black text-teal-400">{schoolInfo.passRatePercent}%</span>
+                  <span className="text-xs text-slate-400">BECE & WAEC Pass Rate</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Opposite UNIBEN Main Gate</span>
+                <div>
+                  <span className="block text-2xl font-black text-amber-400">100%</span>
+                  <span className="text-xs text-slate-400">Moral & Character Focus</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Card / Visual Showcase */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md bg-white rounded-2xl p-4 shadow-2xl border-4 border-[#D4AF37] text-slate-800 transform rotate-1 hover:rotate-0 transition-transform duration-300">
-                <div className="relative h-64 rounded-xl overflow-hidden mb-4">
-                  <img
-                    src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800"
-                    alt="Sharon Brain Classroom"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 right-3 bg-[#0B3D27] text-[#D4AF37] text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                    Montessori Standard
+            {/* Principal Welcome Card */}
+            <div className="lg:col-span-5">
+              <div className="bg-gradient-to-b from-slate-800/90 to-slate-900/95 rounded-2xl p-6 sm:p-8 border border-slate-700 shadow-2xl relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-700 ring-2 ring-emerald-500 shrink-0">
+                    <img
+                      src={schoolInfo.principalPhotoUrl}
+                      alt={schoolInfo.principalName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">{schoolInfo.principalName}</h3>
+                    <p className="text-xs text-emerald-400 font-medium">{schoolInfo.principalTitle}</p>
+                    <p className="text-[11px] text-slate-400">Sharon Brain Academy</p>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <h3 className="font-serif font-bold text-lg text-[#0B3D27]">
-                    Inspiring Young Minds Daily
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Our child-centered environment empowers young learners to explore mathematics, language, science, and practical life skills independently.
-                  </p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0B3D27]">
-                    <span className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      4.9/5 Parent Rating
-                    </span>
-                    <button
-                      onClick={() => setActiveTab('about')}
-                      className="text-[#0B3D27] hover:text-amber-700 underline font-serif"
-                    >
-                      Read Our Philosophy →
-                    </button>
-                  </div>
+                <div className="text-xs text-slate-300 leading-relaxed italic space-y-2 bg-slate-950/40 p-4 rounded-xl border border-slate-800">
+                  <p>"{schoolInfo.principalWelcomeMessage}"</p>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
+                  <span>Motto: <strong className="text-emerald-300">{schoolInfo.motto}</strong></span>
+                  <button
+                    onClick={() => onNavigate('about')}
+                    className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                  >
+                    Read More <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -202,201 +126,129 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, openLoginModal
         </div>
       </section>
 
-
-      {/* School Welcome Message */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-md border border-[#D4AF37]/30 relative overflow-hidden">
-          <div className="max-w-4xl mx-auto space-y-6 text-center">
-            <div className="inline-flex items-center gap-2 bg-emerald-50 border border-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[#0B3D27] mx-auto">
-              <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-              <span>Welcome to Sharon Brain Academy</span>
+      {/* Main Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16">
+        {/* Core Pillars */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Award className="w-6 h-6" />
             </div>
-
-            <h2 className="text-2xl sm:text-4xl font-bold font-serif text-[#0B3D27]">
-              Nurturing Greatness from Early Years
-            </h2>
-
-            <blockquote className="text-slate-700 text-base md:text-lg italic leading-relaxed border-y-2 border-[#D4AF37]/40 py-4 max-w-3xl mx-auto">
-              "{schoolInfo.principalWelcomeMessage}"
-            </blockquote>
-
-            <p className="text-xs md:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
-              At Sharon Brain Academy, we blend academic rigor with self-directed learning and strong moral character. Whether your child is taking their first steps in Pre-Nursery or preparing for entrance examinations into top secondary institutions, we guarantee a safe, uplifting, and transformative educational experience.
+            <h3 className="font-bold text-lg text-slate-900">Academic Rigor</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Standardized Nigerian-British infused curriculum focusing on STEM, literacy, mathematics,
+              quantitative reasoning, and creative arts from early years to secondary levels.
             </p>
-
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
-              <button
-                onClick={() => setActiveTab('about')}
-                className="bg-[#0B3D27] hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition-all shadow inline-flex items-center gap-2"
-              >
-                <span>Learn More About Our Story & Leadership</span>
-                <ArrowRight className="w-4 h-4 text-[#D4AF37]" />
-              </button>
-              <button
-                onClick={() => setActiveTab('admissions')}
-                className="bg-[#D4AF37] hover:bg-amber-400 text-[#0B3D27] font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition-all shadow"
-              >
-                Apply for Admission
-              </button>
-            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Quick Stats Bar */}
-      <section className="bg-[#0B3D27] text-white py-12 border-y-2 border-[#D4AF37]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="space-y-1">
-              <p className="text-3xl md:text-4xl font-bold font-serif text-[#D4AF37]">
-                {schoolInfo.totalStudents}+
-              </p>
-              <p className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
-                Happy Students
-              </p>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
+              <Laptop className="w-6 h-6" />
             </div>
-            <div className="space-y-1">
-              <p className="text-3xl md:text-4xl font-bold font-serif text-[#D4AF37]">
-                {schoolInfo.totalTeachers}+
-              </p>
-              <p className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
-                Certified Teachers
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl md:text-4xl font-bold font-serif text-[#D4AF37]">
-                {schoolInfo.yearsOfExcellence}+ Years
-              </p>
-              <p className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
-                Academic Excellence
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl md:text-4xl font-bold font-serif text-[#D4AF37]">
-                {schoolInfo.passRatePercent}%
-              </p>
-              <p className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
-                Exam Pass Rate
-              </p>
-            </div>
+            <h3 className="font-bold text-lg text-slate-900">Digital CBT System</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Modern Computer-Based Testing with support for 1st Test, 2nd Test, Terminal CBT Exams,
+              objective multiple choice, and theory essay submissions with real-time analytics.
+            </p>
           </div>
-        </div>
-      </section>
 
-      {/* Why Choose Us */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
-            Why Parents Trust Us
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0B3D27]">
-            The Sharon Brain Standard of Educational Excellence
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-lg text-slate-900">Moral Character</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Dedicated mentorship and Christian moral foundation nurturing upright, empathetic,
+              and well-behaved scholars who serve as role models in their communities.
+            </p>
+          </div>
+        </section>
+
+        {/* Calendar and CBT Highlight Row */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Calendar Widget */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Term Schedule & Events</h3>
+                <p className="text-xs text-slate-500">Official dates for tests, exams, holidays & meetings</p>
+              </div>
+              <button
+                onClick={() => onNavigate('calendar')}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              >
+                View Full Calendar <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <SchoolCalendar compact={true} />
+          </div>
+
+          {/* Quick CBT & Result Checker Portal Banner */}
+          <div className="lg:col-span-5 bg-gradient-to-br from-emerald-900 to-teal-900 text-white rounded-2xl p-6 sm:p-7 shadow-lg space-y-5">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-500/30">
+              <FileCheck className="w-6 h-6" />
+            </div>
+
+            <div>
+              <span className="text-xs uppercase font-bold tracking-wider text-emerald-300">
+                Online Portal
+              </span>
+              <h3 className="text-xl font-bold text-white mt-1">CBT Examination & Result Checker</h3>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Parents and students can check 1st Continuous Assessment Test, 2nd Test, and Terminal CBT
+                Exam slips directly online using their Sharon Brain Academy admission number.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-2">
+              <div className="flex items-center gap-2 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Instant CBT score computation & feedback</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Section A (Objective) & Section B (Theory) support</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Downloadable official PDF result slips</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigate('results-cbt')}
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2"
+            >
+              Access Result & CBT Portal <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </section>
+
+        {/* Call to action */}
+        <section className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 text-center space-y-4">
+          <h2 className="text-2xl sm:text-3xl font-black">
+            Enroll Your Child at Sharon Brain Academy Today
           </h2>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            We provide a world-class foundation designed to cultivate creative thinking, leadership, and sound moral character in every pupil.
+          <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+            Admissions are ongoing for Creche, Kindergarten, Nursery, Primary, and Junior Secondary classes.
+            Give your child the lifelong advantage of a first-rate education in Benin City.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {whyChooseUsPoints.map((point, index) => {
-            const IconComponent = point.icon;
-            return (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-[#D4AF37] space-y-3 group"
-              >
-                <div className="w-12 h-12 bg-emerald-50 text-[#0B3D27] rounded-xl flex items-center justify-center group-hover:bg-[#0B3D27] group-hover:text-[#D4AF37] transition-colors">
-                  <IconComponent className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold font-serif text-[#0B3D27]">
-                  {point.title}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {point.desc}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Academic Calendar & Term Dates Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
-        <SchoolCalendar />
-      </section>
-
-      {/* Parent Testimonials */}
-      <section className="bg-gradient-to-b from-[#F9F6EF] to-emerald-50/50 py-16 border-y border-[#D4AF37]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-            <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
-              Parent Testimonials
-            </span>
-            <h2 className="text-3xl font-bold font-serif text-[#0B3D27]">
-              Voices of Our School Community
-            </h2>
-            <p className="text-xs text-slate-600">
-              Read what parents in Benin City say about our teachers, facilities, and academic results.
-            </p>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => onNavigate('admissions')}
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition"
+            >
+              Start Admission Form
+            </button>
+            <a
+              href={`tel:${schoolInfo.phone}`}
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition flex items-center gap-2"
+            >
+              <PhoneCall className="w-4 h-4 text-emerald-400" /> Call Admissions Desk
+            </a>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(t.rating)].map((_, idx) => (
-                      <Star key={idx} className="w-4 h-4 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-slate-700 italic leading-relaxed">
-                    "{t.quote}"
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-slate-100">
-                  <h4 className="text-sm font-bold text-[#0B3D27] font-serif">{t.name}</h4>
-                  <p className="text-[11px] text-slate-500">{t.parentOf}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Call To Action Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#0B3D27] text-white rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden border-2 border-[#D4AF37]">
-          <div className="relative z-10 max-w-3xl space-y-4">
-            <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider font-serif">
-              Admissions Open for 2024/2025 Academic Session
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-bold font-serif text-[#F9F6EF]">
-              Give Your Child the Gift of a World-Class British Montessori Foundation
-            </h2>
-            <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed">
-              Schedule a campus tour or apply online today. Visit us at No 2, 2nd Otakhiogbogie Street, Ugbowo, Benin City, Edo State.
-            </p>
-
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <button
-                onClick={() => setActiveTab('admissions')}
-                className="bg-[#D4AF37] hover:bg-amber-400 text-[#0B3D27] font-bold px-6 py-3 rounded-xl text-sm transition-all shadow"
-              >
-                Start Admission Process
-              </button>
-              <button
-                onClick={() => setActiveTab('contact')}
-                className="bg-emerald-900 hover:bg-emerald-800 text-white font-semibold px-6 py-3 rounded-xl text-sm border border-emerald-700 transition-colors"
-              >
-                Contact School Office
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

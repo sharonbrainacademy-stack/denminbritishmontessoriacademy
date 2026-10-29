@@ -6,7 +6,7 @@ import {
   deleteDoc,
   onSnapshot,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../firebase';
 import {
   SchoolInfo,
   Student,
@@ -23,6 +23,7 @@ import {
   StudentAttendanceRecord,
   StaffAttendanceRecord,
   TeachingMaterial,
+  CalendarEvent,
 } from '../types';
 import {
   initialSchoolInfo,
@@ -40,16 +41,18 @@ import {
   initialStaffAttendance,
   initialTeachingMaterials,
 } from '../data/initialData';
+import { initialCalendarEvents } from '../data/initialCalendarEvents';
 
 interface SchoolContextType {
   schoolInfo: SchoolInfo;
   updateSchoolInfo: (info: Partial<SchoolInfo>) => void;
+
   currentUser: User | null;
   login: (user: User) => void;
   logout: () => void;
-  
+
   students: Student[];
-  addStudent: (student: Omit<Student, 'id'>) => void;
+  addStudent: (student: Omit<Student, 'id'>) => Promise<void>;
   updateStudent: (id: string, data: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
 
@@ -73,14 +76,12 @@ interface SchoolContextType {
   recordCBTAttempt: (attempt: Omit<CBTAttempt, 'id'>) => void;
   updateCBTAttempt: (id: string, data: Partial<CBTAttempt>) => void;
 
-  // Attendance (Student & Staff)
   studentAttendance: StudentAttendanceRecord[];
   markStudentAttendance: (records: StudentAttendanceRecord[]) => void;
 
   staffAttendance: StaffAttendanceRecord[];
   markStaffAttendance: (record: Omit<StaffAttendanceRecord, 'id' | 'timestamp'>) => void;
 
-  // Teaching Materials & Scheme of Work
   teachingMaterials: TeachingMaterial[];
   saveTeachingMaterial: (material: Omit<TeachingMaterial, 'id' | 'lastUpdated'>) => void;
   deleteTeachingMaterial: (id: string) => void;
@@ -103,44 +104,35 @@ interface SchoolContextType {
   addGalleryPhoto: (photo: Omit<GalleryPhoto, 'id'>) => void;
   deleteGalleryPhoto: (id: string) => void;
 
+  calendarEvents: CalendarEvent[];
+  addCalendarEvent: (event: Omit<CalendarEvent, 'id'>) => void;
+  deleteCalendarEvent: (id: string) => void;
+
   isOffline: boolean;
   resetToDefaults: () => void;
 }
 
 const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'sharon_brain_school_data_v1';
+const STORAGE_KEY = 'sharon_brain_school_data_v2';
 
-// Safely migrate any legacy records from denmin_ prefixes to ensure no student records are lost
-try {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    Object.keys(localStorage).forEach(k => {
-      if (k.startsWith('denmin_school_data_v1_')) {
-        const subKey = k.replace('denmin_school_data_v1_', '');
-        const currentTargetKey = `${STORAGE_KEY}_${subKey}`;
-        const existingData = localStorage.getItem(currentTargetKey);
-        const legacyData = localStorage.getItem(k);
-        if (legacyData && !existingData) {
-          localStorage.setItem(currentTargetKey, legacyData);
-        } else if (legacyData && existingData) {
-          try {
-            const parsedLegacy = JSON.parse(legacyData);
-            const parsedCurrent = JSON.parse(existingData);
-            if (Array.isArray(parsedLegacy) && Array.isArray(parsedCurrent)) {
-              const map = new Map<string, any>();
-              parsedLegacy.forEach((item: any) => { if (item.id) map.set(item.id, item); });
-              parsedCurrent.forEach((item: any) => { if (item.id) map.set(item.id, item); });
-              localStorage.setItem(currentTargetKey, JSON.stringify(Array.from(map.values())));
-            }
-          } catch (err) {
-            // ignore
-          }
-        }
-      }
-    });
-  }
-} catch (e) {
-  // Ignore in SSR
+// Known sample student identifiers that should never be shown
+const SAMPLE_STUDENT_IDS = new Set(['std_1', 'std_2', 'std_3', 'std_4', 'std_5']);
+const SAMPLE_STUDENT_NAMES = [
+  'eseosa princess igbinoba',
+  'osasumwen junior oviawe',
+  'divine chinedu okeke',
+  'nosa alexander igbinoba',
+  'aisha aisha bello',
+  'samuel okon',
+];
+
+export function isSampleStudent(item: { id?: string; fullName?: string; studentName?: string; name?: string }): boolean {
+  if (!item) return false;
+  if (item.id && SAMPLE_STUDENT_IDS.has(item.id)) return true;
+  const name = (item.fullName || item.studentName || item.name || '').toLowerCase().trim();
+  if (!name) return false;
+  return SAMPLE_STUDENT_NAMES.some(s => name.includes(s) || s.includes(name));
 }
 
 // Automatic data sanitizer to upgrade any legacy DEN/ abbreviations and emails
@@ -177,21 +169,29 @@ function sanitizeSchoolRecord<T>(item: T): { sanitized: T; changed: boolean } {
   return { sanitized: item, changed: false };
 }
 
-// Safe localStorage loader helper for full offline resilience with automatic sanitization
+// Safe localStorage loader helper with automatic sample student purge
 function loadInitialState<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(`${STORAGE_KEY}_${key}`);
     if (saved) {
       const parsed = JSON.parse(saved);
-      const { sanitized, changed } = sanitizeSchoolRecord(parsed);
-      if (changed) {
-        localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(sanitized));
+      if (key === 'students' && Array.isArray(parsed)) {
+        // Strip out any sample students completely
+        const filtered = parsed.filter(s => !isSampleStudent(s));
+        return filtered as unknown as T;
       }
+      const { sanitized } = sanitizeSchoolRecord(parsed);
       return sanitized;
     }
-    const legacySaved = localStorage.getItem(`denmin_school_data_v1_${key}`);
-    if (legacySaved) {
-      const parsed = JSON.parse(legacySaved);
+    // Also clean up old storage key v1
+    const v1Saved = localStorage.getItem(`sharon_brain_school_data_v1_${key}`);
+    if (v1Saved) {
+      const parsed = JSON.parse(v1Saved);
+      if (key === 'students' && Array.isArray(parsed)) {
+        const filtered = parsed.filter(s => !isSampleStudent(s));
+        localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(filtered));
+        return filtered as unknown as T;
+      }
       const { sanitized } = sanitizeSchoolRecord(parsed);
       localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(sanitized));
       return sanitized;
@@ -202,8 +202,7 @@ function loadInitialState<T>(key: string, fallback: T): T {
   return fallback;
 }
 
-// Bi-directional merge helper: preserves both Firestore and local data, pushes missing local data to Firestore,
-// and automatically sanitizes legacy DEN/ abbreviations to SBA/ in both local and Firestore storage.
+// Bi-directional merge helper: preserves both Firestore and local data, pushes missing local data to Firestore
 function mergeAndSyncWithFirestore<T extends { id: string }>(
   remoteList: T[],
   collectionName: string,
@@ -214,8 +213,13 @@ function mergeAndSyncWithFirestore<T extends { id: string }>(
   const map = new Map<string, T>();
   const toUpdateInFirestore: T[] = [];
 
-  // 1. Add all remote docs, sanitizing any legacy abbreviations
+  // 1. Process remote docs
   remoteList.forEach(rawItem => {
+    // If this is students collection, discard any sample students
+    if (collectionName === 'students' && isSampleStudent(rawItem as any)) {
+      deleteDoc(doc(db, 'students', rawItem.id)).catch(() => {});
+      return;
+    }
     const { sanitized, changed } = sanitizeSchoolRecord(rawItem);
     map.set(sanitized.id, sanitized);
     if (changed) {
@@ -223,8 +227,11 @@ function mergeAndSyncWithFirestore<T extends { id: string }>(
     }
   });
 
-  // 2. Identify local docs missing from Firestore or needing sanitization
+  // 2. Process local docs
   localList.forEach(rawItem => {
+    if (collectionName === 'students' && isSampleStudent(rawItem as any)) {
+      return;
+    }
     const { sanitized, changed } = sanitizeSchoolRecord(rawItem);
     if (!map.has(sanitized.id)) {
       map.set(sanitized.id, sanitized);
@@ -239,7 +246,7 @@ function mergeAndSyncWithFirestore<T extends { id: string }>(
   if (toUpdateInFirestore.length > 0) {
     toUpdateInFirestore.forEach(item => {
       setDoc(doc(db, collectionName, item.id), item as any, { merge: true })
-        .then(() => console.log(`[Storage Sync] Cleaned & Synced ${collectionName} item to Firestore:`, item.id))
+        .then(() => console.log(`[Storage Sync] Synced ${collectionName} item to Firestore:`, item.id))
         .catch(err => console.warn(`[Storage Sync] Queued ${collectionName} item for sync:`, err));
     });
   }
@@ -329,6 +336,9 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>(() =>
     loadInitialState('gallery_photos', initialGalleryPhotos)
   );
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() =>
+    loadInitialState('calendar_events', initialCalendarEvents)
+  );
 
   // Firestore Real-Time Subscriptions & Two-Way Sync
   useEffect(() => {
@@ -379,15 +389,22 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     }, err => console.warn('Offline mode: Using cached school info', err));
 
-    // 2. Students
+    // 2. Students — ONLY students added by the user; actively purge any sample students
     const unsubStudents = onSnapshot(collection(db, 'students'), snapshot => {
-      const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Student));
-      if (remoteList.length === 0) {
-        initialStudents.forEach(s => setDoc(doc(db, 'students', s.id), s).catch(console.error));
-      }
-      const merged = mergeAndSyncWithFirestore(remoteList, 'students', 'students', initialStudents);
-      setStudents(merged);
-      localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(merged));
+      const rawList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Student));
+      
+      // Actively purge any sample students from cloud database
+      rawList.forEach(s => {
+        if (isSampleStudent(s)) {
+          deleteDoc(doc(db, 'students', s.id)).catch(() => {});
+        }
+      });
+
+      const realRemoteList = rawList.filter(s => !isSampleStudent(s));
+      const merged = mergeAndSyncWithFirestore(realRemoteList, 'students', 'students', []);
+      const finalRealStudents = merged.filter(s => !isSampleStudent(s));
+      setStudents(finalRealStudents);
+      localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(finalRealStudents));
     }, err => console.warn('Offline mode: Using local students data', err));
 
     // 3. Teachers
@@ -404,10 +421,14 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 4. Result Slips
     const unsubResults = onSnapshot(collection(db, 'result_slips'), snapshot => {
       const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as ResultSlip));
-      if (remoteList.length === 0) {
-        initialResultSlips.forEach(r => setDoc(doc(db, 'result_slips', r.id), r).catch(console.error));
-      }
-      const merged = mergeAndSyncWithFirestore(remoteList, 'result_slips', 'result_slips', initialResultSlips);
+      // Purge any results belonging to sample students
+      remoteList.forEach(r => {
+        if (isSampleStudent(r as any)) {
+          deleteDoc(doc(db, 'result_slips', r.id)).catch(() => {});
+        }
+      });
+      const realResults = remoteList.filter(r => !isSampleStudent(r as any));
+      const merged = mergeAndSyncWithFirestore(realResults, 'result_slips', 'result_slips', []);
       setResultSlips(merged);
       localStorage.setItem(`${STORAGE_KEY}_result_slips`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local result slips data', err));
@@ -426,10 +447,14 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 6. CBT Attempts
     const unsubAttempts = onSnapshot(collection(db, 'cbt_attempts'), snapshot => {
       const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CBTAttempt));
-      if (remoteList.length === 0) {
-        initialCBTAttempts.forEach(a => setDoc(doc(db, 'cbt_attempts', a.id), a).catch(console.error));
-      }
-      const merged = mergeAndSyncWithFirestore(remoteList, 'cbt_attempts', 'cbt_attempts', initialCBTAttempts);
+      // Purge sample attempts
+      remoteList.forEach(a => {
+        if (isSampleStudent(a as any)) {
+          deleteDoc(doc(db, 'cbt_attempts', a.id)).catch(() => {});
+        }
+      });
+      const realAttempts = remoteList.filter(a => !isSampleStudent(a as any));
+      const merged = mergeAndSyncWithFirestore(realAttempts, 'cbt_attempts', 'cbt_attempts', []);
       setCbtAttempts(merged);
       localStorage.setItem(`${STORAGE_KEY}_cbt_attempts`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local CBT attempts data', err));
@@ -437,10 +462,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 7. Student Attendance
     const unsubStudentAtt = onSnapshot(collection(db, 'student_attendance'), snapshot => {
       const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as StudentAttendanceRecord));
-      if (remoteList.length === 0) {
-        initialStudentAttendance.forEach(a => setDoc(doc(db, 'student_attendance', a.id), a).catch(console.error));
-      }
-      const merged = mergeAndSyncWithFirestore(remoteList, 'student_attendance', 'student_attendance', initialStudentAttendance);
+      remoteList.forEach(a => {
+        if (isSampleStudent(a as any)) {
+          deleteDoc(doc(db, 'student_attendance', a.id)).catch(() => {});
+        }
+      });
+      const realAtt = remoteList.filter(a => !isSampleStudent(a as any));
+      const merged = mergeAndSyncWithFirestore(realAtt, 'student_attendance', 'student_attendance', []);
       setStudentAttendance(merged);
       localStorage.setItem(`${STORAGE_KEY}_student_attendance`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local student attendance', err));
@@ -470,10 +498,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 10. Fee Payments
     const unsubPayments = onSnapshot(collection(db, 'fee_payments'), snapshot => {
       const remoteList = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as FeePayment));
-      if (remoteList.length === 0) {
-        initialFeePayments.forEach(p => setDoc(doc(db, 'fee_payments', p.id), p).catch(console.error));
-      }
-      const merged = mergeAndSyncWithFirestore(remoteList, 'fee_payments', 'fee_payments', initialFeePayments);
+      remoteList.forEach(p => {
+        if (isSampleStudent(p as any)) {
+          deleteDoc(doc(db, 'fee_payments', p.id)).catch(() => {});
+        }
+      });
+      const realPayments = remoteList.filter(p => !isSampleStudent(p as any));
+      const merged = mergeAndSyncWithFirestore(realPayments, 'fee_payments', 'fee_payments', []);
       setFeePayments(merged);
       localStorage.setItem(`${STORAGE_KEY}_fee_payments`, JSON.stringify(merged));
     }, err => console.warn('Offline mode: Using local fee payments data', err));
@@ -489,6 +520,17 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     }, err => console.warn('Offline mode: Using local news articles data', err));
 
+    // 12. Calendar Events
+    const unsubCalendar = onSnapshot(collection(db, 'calendar_events'), snapshot => {
+      if (!snapshot.empty) {
+        const list = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as CalendarEvent));
+        setCalendarEvents(list);
+        localStorage.setItem(`${STORAGE_KEY}_calendar_events`, JSON.stringify(list));
+      } else {
+        initialCalendarEvents.forEach(c => setDoc(doc(db, 'calendar_events', c.id), c).catch(console.error));
+      }
+    }, err => console.warn('Offline mode: Using local calendar events data', err));
+
     return () => {
       unsubInfo();
       unsubStudents();
@@ -501,6 +543,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       unsubMaterials();
       unsubPayments();
       unsubNews();
+      unsubCalendar();
     };
   }, []);
 
@@ -537,7 +580,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const id = `std_${Date.now()}`;
     const newStudent: Student = { ...studentData, admissionNo: cleanAdmissionNo, id };
     setStudents(prev => {
-      const next = [newStudent, ...prev.filter(s => s.id !== id)];
+      const next = [newStudent, ...prev.filter(s => s.id !== id && !isSampleStudent(s))];
       localStorage.setItem(`${STORAGE_KEY}_students`, JSON.stringify(next));
       return next;
     });
@@ -709,18 +752,18 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const markStudentAttendance = (newRecords: StudentAttendanceRecord[]) => {
     setStudentAttendance(prev => {
       const recordMap = new Map<string, StudentAttendanceRecord>();
-      // Keep existing
       prev.forEach(r => recordMap.set(`${r.date}_${r.studentId}`, r));
-      // Overwrite/insert new
       newRecords.forEach(r => recordMap.set(`${r.date}_${r.studentId}`, r));
-      const next = Array.from(recordMap.values());
+      const next = Array.from(recordMap.values()).filter(r => !isSampleStudent(r as any));
       localStorage.setItem(`${STORAGE_KEY}_student_attendance`, JSON.stringify(next));
       return next;
     });
     newRecords.forEach(rec => {
-      setDoc(doc(db, 'student_attendance', rec.id), rec).catch(err => {
-        console.warn('Student attendance stored offline:', err);
-      });
+      if (!isSampleStudent(rec as any)) {
+        setDoc(doc(db, 'student_attendance', rec.id), rec).catch(err => {
+          console.warn('Student attendance stored offline:', err);
+        });
+      }
     });
   };
 
@@ -732,17 +775,14 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       timestamp: new Date().toISOString(),
     };
     setStaffAttendance(prev => {
-      const filtered = prev.filter(r => !(r.date === newRecord.date && r.staffId === newRecord.staffId));
-      const next = [newRecord, ...filtered];
+      const next = [newRecord, ...prev];
       localStorage.setItem(`${STORAGE_KEY}_staff_attendance`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'staff_attendance', id), newRecord).catch(err => {
-      console.warn('Staff attendance stored offline:', err);
-    });
+    setDoc(doc(db, 'staff_attendance', id), newRecord).catch(console.error);
   };
 
-  // Teaching Materials Actions
+  // Teaching Materials
   const saveTeachingMaterial = (materialData: Omit<TeachingMaterial, 'id' | 'lastUpdated'>) => {
     const id = `mat_${Date.now()}`;
     const newMaterial: TeachingMaterial = {
@@ -755,9 +795,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       localStorage.setItem(`${STORAGE_KEY}_teaching_materials`, JSON.stringify(next));
       return next;
     });
-    setDoc(doc(db, 'teaching_materials', id), newMaterial).catch(err => {
-      console.warn('Teaching material stored offline:', err);
-    });
+    setDoc(doc(db, 'teaching_materials', id), newMaterial).catch(console.error);
   };
 
   const deleteTeachingMaterial = (id: string) => {
@@ -846,31 +884,54 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       localStorage.setItem(`${STORAGE_KEY}_gallery_photos`, JSON.stringify(next));
       return next;
     });
+    setDoc(doc(db, 'gallery_photos', id), newPhoto).catch(console.error);
   };
 
   const deleteGalleryPhoto = (id: string) => {
     setGalleryPhotos(prev => {
-      const next = prev.filter(g => g.id !== id);
+      const next = prev.filter(p => p.id !== id);
       localStorage.setItem(`${STORAGE_KEY}_gallery_photos`, JSON.stringify(next));
       return next;
     });
+    deleteDoc(doc(db, 'gallery_photos', id)).catch(console.error);
+  };
+
+  const addCalendarEvent = (eventData: Omit<CalendarEvent, 'id'>) => {
+    const id = `cal_${Date.now()}`;
+    const newEv: CalendarEvent = { ...eventData, id };
+    setCalendarEvents(prev => {
+      const next = [...prev, newEv];
+      localStorage.setItem(`${STORAGE_KEY}_calendar_events`, JSON.stringify(next));
+      return next;
+    });
+    setDoc(doc(db, 'calendar_events', id), newEv).catch(console.error);
+  };
+
+  const deleteCalendarEvent = (id: string) => {
+    setCalendarEvents(prev => {
+      const next = prev.filter(c => c.id !== id);
+      localStorage.setItem(`${STORAGE_KEY}_calendar_events`, JSON.stringify(next));
+      return next;
+    });
+    deleteDoc(doc(db, 'calendar_events', id)).catch(console.error);
   };
 
   const resetToDefaults = () => {
     setSchoolInfo(initialSchoolInfo);
-    setStudents(initialStudents);
+    setStudents([]);
     setTeachers(initialTeachers);
-    setResultSlips(initialResultSlips);
+    setResultSlips([]);
     setCbtExams(initialCBTExams);
-    setCbtAttempts(initialCBTAttempts);
-    setStudentAttendance(initialStudentAttendance);
+    setCbtAttempts([]);
+    setStudentAttendance([]);
     setStaffAttendance(initialStaffAttendance);
     setTeachingMaterials(initialTeachingMaterials);
     setFeeStructures(initialFeeStructures);
-    setFeePayments(initialFeePayments);
+    setFeePayments([]);
     setAdmissionApplications(initialAdmissionApps);
     setNewsArticles(initialNewsArticles);
     setGalleryPhotos(initialGalleryPhotos);
+    setCalendarEvents(initialCalendarEvents);
     localStorage.clear();
   };
 
@@ -922,6 +983,9 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         galleryPhotos,
         addGalleryPhoto,
         deleteGalleryPhoto,
+        calendarEvents,
+        addCalendarEvent,
+        deleteCalendarEvent,
         isOffline,
         resetToDefaults,
       }}

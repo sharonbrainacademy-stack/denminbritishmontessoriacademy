@@ -1,171 +1,257 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, GraduationCap, UserCheck, KeyRound, AlertCircle } from 'lucide-react';
+import {
+  X,
+  LogIn,
+  Shield,
+  UserCheck,
+  GraduationCap,
+  AlertCircle,
+  KeyRound
+} from 'lucide-react';
 import { useSchool } from '../../context/SchoolContext';
 import { initialUsers } from '../../data/initialData';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (role: string) => void;
+  onSuccess: (role: string) => void;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
-  const { login } = useSchool();
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'teacher' | 'student' | 'parent'>('student');
-  const [identifier, setIdentifier] = useState('SBA/2024/001');
-  const [password, setPassword] = useState('student123');
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const [roleTab, setRoleTab] = useState<'admin' | 'staff' | 'student'>('admin');
+  const [emailOrAdmNo, setEmailOrAdmNo] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  const { login, students } = useSchool();
 
   if (!isOpen) return null;
 
-  const handleRoleSelect = (role: 'admin' | 'teacher' | 'student' | 'parent') => {
-    setSelectedRole(role);
-    setError('');
-    if (role === 'admin') {
-      setIdentifier('admin@sharonbrainacademy.edu.ng');
-      setPassword('admin123');
-    } else if (role === 'teacher') {
-      setIdentifier('teacher@sharonbrainacademy.edu.ng');
-      setPassword('teacher123');
-    } else if (role === 'student') {
-      setIdentifier('SBA/2024/001');
-      setPassword('student123');
-    } else if (role === 'parent') {
-      setIdentifier('parent@sharonbrainacademy.edu.ng');
-      setPassword('parent123');
-    }
-  };
-
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Find demo user or generate dynamic session
-    const match = initialUsers.find(u => u.role === selectedRole);
-    if (match) {
-      login(match);
-      onLoginSuccess(selectedRole);
-      onClose();
-    } else {
-      // Fallback
-      login({
-        id: `usr_${Date.now()}`,
-        name: selectedRole.toUpperCase() + ' User',
-        email: identifier,
-        role: selectedRole,
-        admissionNo: selectedRole === 'student' ? identifier : undefined,
-      });
-      onLoginSuccess(selectedRole);
-      onClose();
+    if (roleTab === 'admin') {
+      const adminUser = initialUsers.find((u) => u.role === 'admin');
+      if (adminUser) {
+        login(adminUser);
+        onSuccess('admin');
+        onClose();
+        return;
+      }
+    }
+
+    if (roleTab === 'staff') {
+      const teacherUser = initialUsers.find((u) => u.role === 'teacher');
+      if (teacherUser) {
+        login(teacherUser);
+        onSuccess('staff');
+        onClose();
+        return;
+      }
+    }
+
+    if (roleTab === 'student') {
+      const cleanInput = emailOrAdmNo.trim().toUpperCase();
+      if (!cleanInput) {
+        setError('Please enter your Admission Number or Student Email.');
+        return;
+      }
+
+      // Find genuine student in context
+      const match = students.find(
+        (s) =>
+          (s.admissionNumber || s.admissionNo || '').toUpperCase() === cleanInput ||
+          (s.parentEmail || '').toUpperCase() === cleanInput
+      );
+
+      if (match) {
+        const adm = match.admissionNumber || match.admissionNo || '';
+        login({
+          id: `usr_${match.id}`,
+          name: match.fullName,
+          email: `${adm.toLowerCase().replace(/[^a-z0-9]/g, '')}@student.sharonbrainacademy.edu.ng`,
+          role: 'student',
+          studentId: match.id,
+          admissionNumber: adm,
+          avatarUrl: match.passportPhotoUrl || match.passportUrl,
+        });
+        onSuccess('student');
+        onClose();
+      } else {
+        setError(`No active student found with Admission No: "${cleanInput}". Please check the spelling or contact the school office.`);
+      }
     }
   };
 
+  const handleQuickFill = (role: 'admin' | 'staff') => {
+    setRoleTab(role);
+    if (role === 'admin') {
+      setEmailOrAdmNo('admin@sharonbrainacademy.edu.ng');
+      setPassword('admin123');
+    } else {
+      setEmailOrAdmNo('teacher@sharonbrainacademy.edu.ng');
+      setPassword('teacher123');
+    }
+    setError('');
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#D4AF37]/30 overflow-hidden">
-        {/* Modal Header */}
-        <div className="bg-[#0B3D27] text-white p-6 relative">
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+        {/* Header */}
+        <div className="bg-slate-900 text-white p-6 relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-emerald-200 hover:text-white p-1 rounded-lg hover:bg-emerald-800 transition-colors"
+            className="absolute top-5 right-5 text-slate-400 hover:text-white transition"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#D4AF37] text-[#0B3D27] rounded-xl flex items-center justify-center font-bold">
-              <GraduationCap className="w-6 h-6" />
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+              <KeyRound className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold font-serif text-[#F9F6EF]">School Portal Login</h3>
-              <p className="text-xs text-emerald-200">Sharon Brain Academy</p>
+              <h3 className="font-bold text-lg text-white">Portal Sign In</h3>
+              <p className="text-xs text-slate-400">Sharon Brain Academy Management</p>
             </div>
           </div>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 space-y-5">
-          {/* Role Switcher Pills */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Select Your User Type:
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'student', label: 'Student CBT & Result', icon: GraduationCap },
-                { id: 'parent', label: 'Parent Portal', icon: UserCheck },
-                { id: 'teacher', label: 'Teacher / Staff', icon: KeyRound },
-                { id: 'admin', label: 'School Admin', icon: ShieldCheck },
-              ].map(r => {
-                const IconComponent = r.icon;
-                const isSelected = selectedRole === r.id;
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => handleRoleSelect(r.id as any)}
-                    className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border ${
-                      isSelected
-                        ? 'bg-[#0B3D27] text-white border-[#0B3D27] shadow-md'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    <IconComponent className={`w-4 h-4 ${isSelected ? 'text-[#D4AF37]' : 'text-slate-500'}`} />
-                    <span className="truncate">{r.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        {/* Role tabs */}
+        <div className="grid grid-cols-3 bg-slate-100 p-1 border-b border-slate-200 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => {
+              setRoleTab('admin');
+              setError('');
+            }}
+            className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition ${
+              roleTab === 'admin'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5 text-rose-600" /> Admin
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRoleTab('staff');
+              setError('');
+            }}
+            className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition ${
+              roleTab === 'staff'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5 text-blue-600" /> Staff
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRoleTab('student');
+              setError('');
+            }}
+            className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition ${
+              roleTab === 'student'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5 text-emerald-600" /> Student
+          </button>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="p-6 space-y-4">
+          {error && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {roleTab === 'student' ? (
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                {selectedRole === 'student' ? 'Admission Number' : 'Email or Username'}
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Student Admission Number
               </label>
               <input
                 type="text"
+                value={emailOrAdmNo}
+                onChange={(e) => setEmailOrAdmNo(e.target.value)}
+                placeholder="e.g. SBA/2024/001"
                 required
-                value={identifier}
-                onChange={e => setIdentifier(e.target.value)}
-                placeholder={selectedRole === 'student' ? 'e.g. SBA/2024/001' : 'e.g. admin@sharonbrainacademy.edu.ng'}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B3D27]"
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Enter the official Sharon Brain Academy admission number given on your admission letter.
+              </p>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B3D27]"
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-                <span>{error}</span>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={emailOrAdmNo}
+                  onChange={(e) => setEmailOrAdmNo(e.target.value)}
+                  placeholder={roleTab === 'admin' ? 'admin@sharonbrainacademy.edu.ng' : 'teacher@sharonbrainacademy.edu.ng'}
+                  required
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
               </div>
-            )}
 
-            {/* Demo Quick Auto-Fill Hint */}
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-snug">
-              <span className="font-bold text-[#0B3D27]">Demo Mode Active:</span> Pre-filled with credentials for instant access. Click Login below to proceed!
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                  required
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
 
+              {/* Quick login helpers for admin and staff */}
+              <div className="pt-1">
+                <span className="text-[11px] text-slate-500 block mb-1">Quick Login:</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('admin')}
+                    className="text-xs px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                  >
+                    Load Admin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('staff')}
+                    className="text-xs px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                  >
+                    Load Staff
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 bg-[#0B3D27] hover:bg-emerald-900 text-[#D4AF37] font-bold text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-sm"
             >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Log In to {selectedRole.toUpperCase()} Dashboard</span>
+              <LogIn className="w-4 h-4" />
+              Sign In to {roleTab.toUpperCase()}
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

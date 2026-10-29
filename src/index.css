@@ -1,39 +1,32 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
-    --color-primary: #0B3D27;
-    --color-gold: #D4AF37;
-    --color-cream: #F9F6EF;
-  }
-  
   body {
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+    background-color: #F9F6EF;
+    color: #1e293b;
   }
 
-  h1, h2, h3, h4, .font-serif-heading {
+  h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
 @media print {
-  body * {
-    visibility: hidden;
+  body {
+    background: white !important;
+    color: black !important;
   }
-  #printable-area, #printable-area * {
-    visibility: visible;
-  }
-  #printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 20px;
-    background: white;
-    color: black;
-  }
-  .no-print {
+  header, footer, button, .no-print {
     display: none !important;
   }
 }

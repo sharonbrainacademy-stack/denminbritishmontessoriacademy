@@ -1,380 +1,101 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BookOpen,
-  Brain,
-  Calculator,
-  Globe2,
-  Palette,
-  Bot,
-  Music,
-  Dumbbell,
-  Sprout,
-  Calendar,
-  Sparkles,
   Award,
-  FileText,
-  Download,
-  Printer,
-  ChevronRight,
-  CheckCircle2,
-  Layers,
-  Search,
+  CheckCircle,
+  Laptop,
+  Music,
+  Dna,
+  Calculator,
+  Languages
 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
-import { TeachingMaterial } from '../types';
 
 export const AcademicsPage: React.FC = () => {
-  const { teachingMaterials, isOffline } = useSchool();
-  const [selectedSubject, setSelectedSubject] = useState<string>('All');
-  const [selectedMaterial, setSelectedMaterial] = useState<TeachingMaterial | null>(null);
+  const { schoolInfo } = useSchool();
 
-  const montessoriPillars = [
+  const cadres = [
     {
-      title: '1. Practical Life Exercises',
-      desc: 'Developing fine motor coordination, independence, concentration, grace, and courtesy through pouring, lacing, buttoning, and environmental care.',
-      icon: Brain,
+      level: 'Early Childhood / Creche & Kindergarten',
+      ages: '3 months – 5 years',
+      description: 'Montessori-inspired sensory learning, phonetics, foundational literacy, and social habits in a warm, nurturing environment.',
+      subjects: ['Phonics & Pre-reading', 'Numeracy & Shapes', 'Sensory Play', 'Creative Arts', 'Rhymes & Moral Stories'],
     },
     {
-      title: '2. Sensorial Education',
-      desc: 'Refining the child’s visual, tactile, auditory, olfactory, and stereognostic senses using pink towers, cylinder blocks, and color tablets.',
-      icon: Sparkles,
+      level: 'Primary Cadre (Basic 1 – 6)',
+      ages: '5 – 11 years',
+      description: 'Comprehensive Nigerian and international curriculum preparing pupils for common entrance examinations and lifelong academic agility.',
+      subjects: [
+        'Mathematics & Quantitative Reasoning',
+        'English Language & Verbal Reasoning',
+        'Basic Science & Technology',
+        'Social Studies & Civic Education',
+        'Computer Studies & ICT',
+        'Agricultural Science',
+        'Christian Religious Studies',
+        'Cultural & Creative Arts',
+      ],
     },
     {
-      title: '3. Mathematics & Logic',
-      desc: 'From concrete golden bead materials to abstract arithmetic: addition, subtraction, place values, fractions, and multiplication concept boards.',
-      icon: Calculator,
-    },
-    {
-      title: '4. Language & Literacy',
-      desc: 'Phonics sandpaper letters, movable alphabets, creative story composition, diction, and early speed reading fluency.',
-      icon: BookOpen,
-    },
-    {
-      title: '5. Cultural & Scientific Studies',
-      desc: 'Exploring geography continents, botany leaf shapes, basic physics, history, and rich Nigerian cultural heritage.',
-      icon: Globe2,
+      level: 'Junior Secondary (JSS 1 – 3)',
+      ages: '11 – 14 years',
+      description: 'Rigorously preparing young scholars for the Basic Education Certificate Examination (BECE) and state junior examinations with STEM laboratories.',
+      subjects: [
+        'Mathematics & Basic Science',
+        'English Language & Literature',
+        'Business Studies & Commerce',
+        'Computer Science & Programming',
+        'Basic Technology & Technical Drawing',
+        'Civic Education & Social Studies',
+      ],
     },
   ];
-
-  const coCurricularClubs = [
-    { title: 'Robotics & STEAM Club', icon: Bot, desc: 'Introductory coding, Lego mechanical structures, and hands-on science experiments.' },
-    { title: 'Chess & Logic Academy', icon: Award, desc: 'Enhancing strategic foresight, concentration, and mathematical problem-solving.' },
-    { title: 'Taekwondo & Martial Arts', icon: Dumbbell, desc: 'Building physical agility, self-defense awareness, and respectful self-discipline.' },
-    { title: 'Music & Choir Ensemble', icon: Music, desc: 'Piano basics, vocal training, rhythm percussion, and musical notation literacy.' },
-    { title: 'Young Farmers & Nature Club', icon: Sprout, desc: 'Gardening, botany, environmental conservation, and organic farming practicals.' },
-    { title: 'Diction, Drama & Debating', icon: Palette, desc: 'Elocution training, public speaking confidence, theatrical performance, and debates.' },
-  ];
-
-  const filteredMaterials = teachingMaterials.filter(
-    m => selectedSubject === 'All' || m.subject === selectedSubject
-  );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
-      {/* Header Banner */}
-      <div className="bg-[#0B3D27] text-white p-8 md:p-12 rounded-3xl border-2 border-[#D4AF37] shadow-xl text-center space-y-3">
-        <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
-          Academic Rigor & Innovation
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-16">
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          Academic Framework
         </span>
-        <h1 className="text-3xl md:text-5xl font-bold font-serif text-[#F9F6EF]">
-          Montessori Curriculum & Academics
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          Curriculum Designed for World-Class Success
         </h1>
-        <p className="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto leading-relaxed">
-          Detailed breakdown of our learning areas, British primary subjects, co-curricular clubs, offline teaching materials, and academic term calendar.
+        <p className="text-slate-600 text-sm leading-relaxed">
+          At Sharon Brain Academy, our balanced academic curriculum stimulates critical thinking,
+          computational fluency, and moral clarity at every grade stage.
         </p>
       </div>
 
-      {/* Montessori Pillars Breakdown */}
       <div className="space-y-8">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
-            5 Core Montessori Areas
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#0B3D27]">
-            Sensory-Driven Learning Curriculum
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {montessoriPillars.map((p, idx) => {
-            const IconComponent = p.icon;
-            return (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 hover:border-[#D4AF37] transition-colors">
-                <div className="w-12 h-12 bg-emerald-50 text-[#0B3D27] rounded-xl flex items-center justify-center">
-                  <IconComponent className="w-6 h-6 text-[#D4AF37]" />
-                </div>
-                <h3 className="text-lg font-bold font-serif text-[#0B3D27]">{p.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{p.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Primary Subjects Breakdown */}
-      <div className="bg-[#0B3D27] text-white rounded-3xl p-8 md:p-12 border-2 border-[#D4AF37] space-y-6">
-        <div className="max-w-3xl space-y-2">
-          <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider font-serif">
-            Primary School Academic Standards
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#F9F6EF]">
-            Comprehensive Primary Subjects
-          </h2>
-          <p className="text-xs text-emerald-100 leading-relaxed">
-            Our Primary pupils (Primary 1 - 6) receive rigorous instruction blending British National Primary Curriculum benchmarks with Nigerian Basic Education requirements:
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-          {[
-            'Mathematics & Quantitative Reasoning',
-            'English Language & Verbal Reasoning',
-            'Phonics, Diction & Speech Drill',
-            'Basic Science & Technology (STEAM)',
-            'Computer Studies & CBT Literacy',
-            'Social Studies & Civic Education',
-            'Agricultural Science',
-            'Home Economics & Life Skills',
-            'French Language & Global Culture',
-            'Edo Language & Cultural History',
-            'Christian Religious Studies (CRS)',
-            'Creative & Fine Arts',
-          ].map((sub, i) => (
-            <div key={i} className="p-3 bg-emerald-950/80 rounded-xl border border-[#D4AF37]/30 text-emerald-100 font-medium flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
-              <span>{sub}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Dedicated Section: OFFLINE TEACHING MATERIALS & SCHEMES OF WORK */}
-      <div className="bg-white rounded-3xl p-8 border-2 border-[#D4AF37] shadow-lg space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold bg-[#0B3D27] text-[#D4AF37] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Offline PWA Resource Library
+        {cadres.map((cadre, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-md transition grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+          >
+            <div className="lg:col-span-5 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
+                Age: {cadre.ages}
               </span>
-              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full">
-                ✓ 100% Works Without Internet
-              </span>
+              <h2 className="text-2xl font-bold text-slate-900">{cadre.level}</h2>
+              <p className="text-xs text-slate-600 leading-relaxed">{cadre.description}</p>
             </div>
-            <h2 className="text-2xl font-bold font-serif text-[#0B3D27] mt-1">
-              Curriculum Schemes of Work & Teaching Materials
-            </h2>
-            <p className="text-xs text-slate-600">
-              Structured lesson notes, learning objectives, instructional presentation steps, and evaluation questions cached for immediate offline access.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <select
-              value={selectedSubject}
-              onChange={e => setSelectedSubject(e.target.value)}
-              className="text-xs p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold text-[#0B3D27]"
-            >
-              <option value="All">All Learning Areas</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="English Language">English Language</option>
-              <option value="Computer Studies">Computer Studies</option>
-              <option value="Montessori Curriculum">Montessori Curriculum</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredMaterials.map(mat => (
-            <div
-              key={mat.id}
-              className="p-5 rounded-2xl border border-slate-200 hover:border-[#D4AF37] transition-all bg-slate-50/50 space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full uppercase">
-                    {mat.category}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-slate-500">
-                    {mat.week} • {mat.term}
-                  </span>
-                </div>
-                <h3 className="font-bold text-sm font-serif text-[#0B3D27]">{mat.title}</h3>
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                  <strong className="text-slate-800">Topic:</strong> {mat.topic}
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {mat.learningObjectives.slice(0, 2).map((obj, i) => (
-                    <span key={i} className="text-[10px] bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded-md truncate max-w-xs">
-                      • {obj}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-semibold">{mat.subject} ({mat.className})</span>
-                <button
-                  onClick={() => setSelectedMaterial(mat)}
-                  className="bg-[#0B3D27] hover:bg-emerald-950 text-[#D4AF37] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm transition-all"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Open Lesson Guide</span>
-                </button>
+            <div className="lg:col-span-7 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                Key Subject Offerings
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {cadre.subjects.map((subj, sIdx) => (
+                  <div key={sIdx} className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{subj}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-
-      {/* Co-Curricular Activities */}
-      <div className="space-y-8">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest font-serif">
-            Clubs & Societies
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#0B3D27]">
-            Co-Curricular & Leadership Development
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {coCurricularClubs.map((club, idx) => {
-            const IconComponent = club.icon;
-            return (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-                <div className="w-12 h-12 bg-amber-50 text-[#0B3D27] rounded-xl flex items-center justify-center shrink-0 border border-amber-200">
-                  <IconComponent className="w-6 h-6 text-[#D4AF37]" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold font-serif text-[#0B3D27]">{club.title}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{club.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Term Dates & Academic Calendar */}
-      <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6">
-        <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
-          <Calendar className="w-6 h-6 text-[#0B3D27]" />
-          <div>
-            <h3 className="text-xl font-bold font-serif text-[#0B3D27]">2024/2025 Academic Calendar Summary</h3>
-            <p className="text-xs text-slate-500">Official Term Key Dates & Holidays</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
-            <h4 className="font-bold text-[#0B3D27] text-sm">1st Term (Autumn)</h4>
-            <p className="text-slate-600">Resumption: Sept 9, 2024</p>
-            <p className="text-slate-600">Mid-Term Break: Oct 24 - Oct 28, 2024</p>
-            <p className="text-slate-600">CBT Exams & Vacation: Dec 16, 2024</p>
-          </div>
-
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
-            <h4 className="font-bold text-[#0B3D27] text-sm">2nd Term (Spring)</h4>
-            <p className="text-slate-600">Resumption: Jan 13, 2025</p>
-            <p className="text-slate-600">Mid-Term Break: Feb 20 - Feb 24, 2025</p>
-            <p className="text-slate-600">Inter-House Sports & Vacation: April 11, 2025</p>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-            <h4 className="font-bold text-[#0B3D27] text-sm">3rd Term (Summer)</h4>
-            <p className="text-slate-600">Resumption: May 5, 2025</p>
-            <p className="text-slate-600">Mid-Term Break: June 12 - June 16, 2025</p>
-            <p className="text-slate-600">Graduation & Award Day: July 25, 2025</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Teaching Material Modal Viewer */}
-      {selectedMaterial && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border-2 border-[#D4AF37] max-h-[90vh] overflow-y-auto my-auto text-xs">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div>
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full uppercase">
-                  {selectedMaterial.category} • {selectedMaterial.week} ({selectedMaterial.term})
-                </span>
-                <h3 className="text-xl font-bold font-serif text-[#0B3D27] mt-1">
-                  {selectedMaterial.title}
-                </h3>
-                <p className="text-slate-500 font-semibold">{selectedMaterial.subject} — {selectedMaterial.className}</p>
-              </div>
-              <button
-                onClick={() => setSelectedMaterial(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-slate-700">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                <span className="font-bold text-[#0B3D27]">Topic & Key Concept</span>
-                <p className="font-bold text-slate-900">{selectedMaterial.topic}</p>
-                <p className="text-slate-600 leading-relaxed">{selectedMaterial.keyConcepts}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[#0B3D27] mb-1.5">Learning Objectives</h4>
-                <ul className="list-disc list-inside space-y-1 text-slate-600">
-                  {selectedMaterial.learningObjectives.map((obj, i) => (
-                    <li key={i}>{obj}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[#0B3D27] mb-1.5">Montessori Apparatus & Materials</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedMaterial.materialsNeeded.map((mat, i) => (
-                    <span key={i} className="bg-emerald-50 text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-200 font-medium">
-                      {mat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[#0B3D27] mb-1.5">Classroom Presentation & Delivery Method</h4>
-                <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  {selectedMaterial.presentationSteps.map((step, i) => (
-                    <p key={i} className="text-slate-700 leading-relaxed">{step}</p>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[#0B3D27] mb-1.5">Independent Evaluation Questions</h4>
-                <ol className="list-decimal list-inside space-y-1 text-slate-600">
-                  {selectedMaterial.evaluationQuestions.map((q, i) => (
-                    <li key={i}>{q}</li>
-                  ))}
-                </ol>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
-              <button
-                onClick={() => setSelectedMaterial(null)}
-                className="px-4 py-2 border rounded-xl font-bold"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-[#0B3D27] text-[#D4AF37] rounded-xl font-bold flex items-center gap-1.5 shadow"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Lesson Note</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
